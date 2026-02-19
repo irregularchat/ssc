@@ -4,7 +4,7 @@ Find any building on a military installation by its building number. Get one-tap
 
 ## The Problem
 
-Military installations use building numbers (e.g., "4-2274", "C-6837") as their primary addressing system. These don't appear in consumer navigation apps, making it difficult for:
+Military installations use building numbers (e.g., "R2560", "32920") as their primary addressing system. These don't appear in consumer navigation apps, making it difficult for:
 
 - **Service members & families** — Finding appointments, in-processing, daily navigation
 - **Delivery drivers** — DoorDash, UberEats, Amazon finding delivery locations on post
@@ -52,6 +52,7 @@ npx wrangler d1 create milnav-db
 
 # Run migrations
 npx wrangler d1 execute milnav-db --file=migrations/0001_initial_schema.sql
+npx wrangler d1 execute milnav-db --file=migrations/0002_import_fort_bragg_buildings.sql
 
 # Start dev server (backend)
 npx wrangler dev
@@ -74,14 +75,25 @@ cd web && npm run dev
 |----------|--------|-------------|
 | `/api/installations` | GET | List all installations |
 | `/api/buildings?installation=fort-bragg` | GET | Buildings for an installation |
-| `/api/buildings/search?q=4-2274&installation=fort-bragg` | GET | Search by building number |
+| `/api/buildings/search?q=32920&installation=fort-bragg` | GET | Search by building number |
 | `/api/buildings/:id` | GET | Single building details |
 | `/api/submissions` | POST | Submit a missing building |
 
 ## Supported Installations
 
-- Fort Bragg, NC (active)
-- More coming soon
+### Fort Bragg, NC — 5,668 buildings
+
+- **Source:** Cumberland County GIS REST Service ([BraggData/MapServer](https://gis.co.cumberland.nc.us/server/rest/services/Bragg/BraggData/MapServer))
+- **Building formats:** Letter+digits (`R2560`, `A3137`) and digits-only (`32920`, `33121`)
+- **Categories:** admin, barracks, dining, medical, housing, storage, maintenance, recreation, retail, and more
+- **Data pipeline:** `scripts/generate-import-sql.py` transforms GIS JSON → D1 migration SQL
+
+### Adding a New Installation
+
+1. Find the county/regional GIS service with building footprint data
+2. Download via REST API (see `scripts/generate-import-sql.py` for the pattern)
+3. Generate migration SQL and run against D1
+4. Add an installation seed row in the migration
 
 ## Contributing
 

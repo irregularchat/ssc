@@ -51,6 +51,22 @@ milnav/
 - **Tiles:** OpenFreeMap Liberty (free, no API keys)
 - **Pattern:** All map components use DirectionsModal for navigation (Google Maps, Apple Maps, Waze)
 
+## Data Sources
+
+### Fort Bragg Buildings (5,668 records)
+- **Source:** Cumberland County GIS REST Service (`gis.co.cumberland.nc.us`)
+- **Layer:** BraggData/MapServer Layer 2 (Buildings) + Layer 0 (Addresses)
+- **Migration:** `migrations/0002_import_fort_bragg_buildings.sql`
+- **Building number formats:** Letter+digits (`R2560`, `A3137`) and digits-only (`32920`, `33121`)
+- **Zone prefixes:** A-Z correspond to installation zones visible on the map
+- **Raw data:** `data/fort_bragg_buildings.json`, `data/fort_bragg_addresses.json`
+
+### Adding New Installations
+1. Find the county/regional GIS service with building data
+2. Download via REST API (see `scripts/generate-import-sql.py` for pattern)
+3. Generate migration SQL and run against D1
+4. Add installation seed row in migration
+
 ## Key Patterns
 
 - Always use DirectionsModal for "Get Directions" — never link directly to Google Maps
