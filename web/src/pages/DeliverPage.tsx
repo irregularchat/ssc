@@ -154,21 +154,36 @@ export default function DeliverPage() {
   }, [origin, currentPos])
 
   const handleNavigate = useCallback(() => {
-    const allStops = origin === 'gate'
-      ? [{ latitude: H1575_GATE.latitude, longitude: H1575_GATE.longitude }, ...stops]
-      : stops
+    let allStops: Array<{ latitude: number; longitude: number }>
+    if (origin === 'gate') {
+      allStops = [{ latitude: H1575_GATE.latitude, longitude: H1575_GATE.longitude }, ...stops]
+    } else if (currentPos) {
+      allStops = [{ latitude: currentPos.latitude, longitude: currentPos.longitude }, ...stops]
+    } else {
+      // No GPS available — open Google Maps with "My Location" as origin
+      if (stops.length === 0) return
+      const coords = stops.map((s) => `${s.latitude},${s.longitude}`).join('/')
+      window.open(`https://www.google.com/maps/dir/My+Location/${coords}`, '_blank')
+      return
+    }
     const urls = buildGoogleMapsUrl(allStops)
     if (urls.length > 0) {
       window.open(urls[0], '_blank')
     }
-  }, [origin, stops])
+  }, [origin, stops, currentPos])
 
   const handleCopySummary = useCallback(async () => {
-    const summary = formatRouteSummary(stops)
+    const startLabel =
+      origin === 'gate'
+        ? `Start: All American Gate (Bldg H1575)`
+        : currentPos
+          ? `Start: Current Location (${currentPos.latitude.toFixed(6)}, ${currentPos.longitude.toFixed(6)})`
+          : `Start: Current Location`
+    const summary = startLabel + '\n\n' + formatRouteSummary(stops)
     await navigator.clipboard.writeText(summary)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [stops])
+  }, [stops, origin, currentPos])
 
   const handleClearAll = useCallback(() => {
     if (stops.length === 0) return
