@@ -1,11 +1,26 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { searchBuildings } from '../lib/api'
 import type { Building } from '../lib/types'
 import DirectionsModal from '../components/DirectionsModal'
 import BuildingResultCard from '../components/BuildingResultCard'
 import { isMGRS, decodeMGRS } from '../lib/mgrs-utils'
+import { SearchIcon, MapIcon, TruckIcon, SpinnerIcon } from '../components/Icons'
 
 const DEFAULT_INSTALLATION = 'fort-bragg'
+const MAX_RECENT = 5
+
+function loadRecents(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem('milnav-recent-searches') || '[]')
+  } catch { return [] }
+}
+
+function saveRecent(query: string) {
+  const recents = loadRecents().filter((r) => r !== query)
+  recents.unshift(query)
+  localStorage.setItem('milnav-recent-searches', JSON.stringify(recents.slice(0, MAX_RECENT)))
+}
 
 export default function HomePage() {
   const [query, setQuery] = useState('')
@@ -13,24 +28,41 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
   const [directionsBuilding, setDirectionsBuilding] = useState<Building | null>(null)
+  const [recents, setRecents] = useState<string[]>(loadRecents)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
-    setLoading(true)
-    setSearched(true)
-    try {
-      const data = await searchBuildings(DEFAULT_INSTALLATION, query.trim())
-      setResults(data)
-    } catch {
+  // Debounced real-time search
+  useEffect(() => {
+    if (!query.trim()) {
       setResults([])
-    } finally {
-      setLoading(false)
+      setSearched(false)
+      return
     }
+
+    debounceRef.current && clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true)
+      setSearched(true)
+      try {
+        const data = await searchBuildings(DEFAULT_INSTALLATION, query.trim())
+        setResults(data)
+        if (data.length > 0) {
+          saveRecent(query.trim())
+          setRecents(loadRecents())
+        }
+      } catch {
+        setResults([])
+      } finally {
+        setLoading(false)
+      }
+    }, 300)
+
+    return () => { debounceRef.current && clearTimeout(debounceRef.current) }
   }, [query])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch()
-  }
+  const handleRecentClick = useCallback((term: string) => {
+    setQuery(term)
+  }, [])
 
   // When search returns no results and query looks like MGRS, decode it
   const mgrsLocation =
@@ -39,49 +71,42 @@ export default function HomePage() {
       : null
 
   return (
-    <div className="min-h-screen bg-sand-50">
+    <div className="flex-1 overflow-auto bg-gray-50">
       {/* Hero */}
-      <div className="bg-olive-700 text-white py-14 px-4">
+      <div className="bg-olive-700 text-white py-10 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Fort Maps</h1>
-          <p className="mt-3 text-olive-200 text-base md:text-lg leading-relaxed max-w-lg mx-auto">
-            Search any building on a military installation by number, name, or MGRS grid coordinate.
-            Get instant directions via Google Maps, Apple Maps, or Waze — plus MGRS and GPS coordinates for every location.
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight md:hidden">Fort Maps</h1>
+          <p className="mt-2 text-olive-200 text-sm md:text-base leading-relaxed max-w-md mx-auto">
+            Search any building by number, name, or MGRS coordinate.
           </p>
 
           {/* Search */}
-          <div className="mt-8 flex gap-2 max-w-lg mx-auto">
+          <div className="mt-6 relative max-w-lg mx-auto">
+            <SearchIcon className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-olive-300/60" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Building #, name, or MGRS (e.g. 17SPU8341291718)"
-              className="flex-1 px-4 py-3 rounded-xl text-steel bg-white text-base focus:outline-none focus:ring-2 focus:ring-sand-300"
+              placeholder='Try "R2560" or "clinic" or MGRS...'
+              className="w-full pl-12 pr-4 py-3.5 rounded-xl text-steel bg-white text-base focus:outline-none focus:ring-2 focus:ring-sand-300 shadow-lg"
+              autoFocus
             />
-            <button
-              onClick={handleSearch}
-              disabled={loading || !query.trim()}
-              className="px-6 py-3 bg-sand-300 text-olive-700 font-semibold rounded-xl hover:bg-sand-200 transition-colors disabled:opacity-50"
-            >
-              {loading ? '...' : 'Search'}
-            </button>
+            {loading && (
+              <SpinnerIcon className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            )}
           </div>
 
-          <p className="mt-3 text-olive-300 text-sm">Fort Liberty (Bragg), NC — 5,668 buildings</p>
+          <p className="mt-3 text-olive-300 text-xs">Fort Liberty (Bragg), NC — 5,668 buildings</p>
         </div>
       </div>
 
-      {/* Results */}
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {loading && (
-          <div className="flex items-center justify-center py-8 text-gray-400">
-            <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Searching...
-          </div>
+      {/* Results area */}
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Result count */}
+        {searched && !loading && results.length > 0 && (
+          <p className="text-xs text-gray-400 mb-3 font-medium">
+            {results.length} result{results.length !== 1 ? 's' : ''}
+          </p>
         )}
 
         {/* No results — MGRS fallback */}
@@ -95,23 +120,19 @@ export default function HomePage() {
                 <p className="text-sm text-gray-400 mt-1">
                   Decoded to {mgrsLocation.latitude.toFixed(6)}, {mgrsLocation.longitude.toFixed(6)}
                 </p>
-                <a
-                  href={`/explore?lat=${mgrsLocation.latitude}&lng=${mgrsLocation.longitude}&zoom=17`}
-                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-olive-500 text-white font-semibold rounded-xl hover:bg-olive-600 transition-colors"
+                <Link
+                  to={`/explore?lat=${mgrsLocation.latitude}&lng=${mgrsLocation.longitude}&zoom=17`}
+                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-olive-500 text-white font-semibold rounded-xl hover:bg-olive-600 active:scale-95 transition-all"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                  </svg>
-                  View this location on the map
-                </a>
+                  <MapIcon className="w-5 h-5" />
+                  View on map
+                </Link>
               </>
             ) : (
               <>
                 <p className="text-gray-500">No buildings found for &quot;{query}&quot;</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Try a building number, name, or MGRS coordinate — or browse the{' '}
-                  <a href="/explore" className="text-olive-500 underline">map</a>
+                  Try a building number, name, or MGRS coordinate
                 </p>
               </>
             )}
@@ -127,22 +148,46 @@ export default function HomePage() {
           />
         ))}
 
-        {/* Quick links when no search performed */}
+        {/* Quick links + recents when no search */}
         {!searched && (
-          <div className="text-center py-8 space-y-4">
-            <a href="/explore" className="inline-flex items-center gap-2 text-olive-500 text-lg font-medium hover:text-olive-700 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
-              </svg>
-              Browse all buildings on the map
-            </a>
-            <a href="/deliver" className="inline-flex items-center gap-2 text-olive-500 text-lg font-medium hover:text-olive-700 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H21M3.375 14.25h17.25a1.125 1.125 0 0 0 1.125-1.125V6.75a1.125 1.125 0 0 0-1.125-1.125H3.375a1.125 1.125 0 0 0-1.125 1.125v6.375c0 .621.504 1.125 1.125 1.125Z" />
-              </svg>
-              Delivery Driver Mode
-            </a>
-            <p className="text-sm text-gray-400">5,668 buildings at Fort Liberty (Bragg)</p>
+          <div className="space-y-6">
+            {/* Recent searches */}
+            {recents.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Recent</p>
+                <div className="flex flex-wrap gap-2">
+                  {recents.map((term) => (
+                    <button
+                      key={term}
+                      onClick={() => handleRecentClick(term)}
+                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:border-olive-300 hover:text-olive-600 active:scale-95 transition-all"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick action cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                to="/explore"
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-olive-200 active:scale-[0.98] transition-all group"
+              >
+                <MapIcon className="w-7 h-7 text-olive-500 mb-2 group-hover:text-olive-600 transition-colors" />
+                <p className="font-semibold text-sm text-steel">Explore Map</p>
+                <p className="text-xs text-gray-400 mt-0.5">Browse all buildings</p>
+              </Link>
+              <Link
+                to="/deliver"
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-olive-200 active:scale-[0.98] transition-all group"
+              >
+                <TruckIcon className="w-7 h-7 text-olive-500 mb-2 group-hover:text-olive-600 transition-colors" />
+                <p className="font-semibold text-sm text-steel">Delivery Mode</p>
+                <p className="text-xs text-gray-400 mt-0.5">Plan multi-stop routes</p>
+              </Link>
+            </div>
           </div>
         )}
       </div>

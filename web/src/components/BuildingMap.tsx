@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo, useState } from 'react'
+import { useRef, useCallback, useMemo, useState, useEffect } from 'react'
 import MapGL, { Source, Layer, Popup, NavigationControl, GeolocateControl } from 'react-map-gl/maplibre'
 import type { MapLayerMouseEvent, GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -15,25 +15,28 @@ interface BuildingMapProps {
 
 export default function BuildingMap({ buildings, installation, selectedBuilding, onSelectBuilding, onDirections }: BuildingMapProps) {
   const mapRef = useRef<any>(null)
+  const skipFlyRef = useRef(false)
   const [cursor, setCursor] = useState('')
 
-  // Convert buildings to GeoJSON for clustering
+  // Convert buildings to GeoJSON for clustering (filter out null coordinates)
   const geojson = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: buildings.map((b) => ({
-      type: 'Feature' as const,
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [b.longitude, b.latitude],
-      },
-      properties: {
-        id: b.id,
-        building_number: b.building_number,
-        name: b.name || '',
-        category: b.category || 'other',
-        color: BUILDING_CATEGORIES[b.category || 'other']?.color || '#94A3B8',
-      },
-    })),
+    features: buildings
+      .filter((b) => b.latitude != null && b.longitude != null && !isNaN(b.latitude) && !isNaN(b.longitude))
+      .map((b) => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [b.longitude, b.latitude],
+        },
+        properties: {
+          id: b.id,
+          building_number: b.building_number,
+          name: b.name || '',
+          category: b.category || 'other',
+          color: BUILDING_CATEGORIES[b.category || 'other']?.color || '#94A3B8',
+        },
+      })),
   }), [buildings])
 
   // Build a lookup for click handling
@@ -42,6 +45,18 @@ export default function BuildingMap({ buildings, installation, selectedBuilding,
     buildings.forEach((b) => { lookup[b.id] = b })
     return lookup
   }, [buildings])
+
+  // Fly to building when selected externally (sidebar click)
+  useEffect(() => {
+    if (selectedBuilding && mapRef.current && !skipFlyRef.current) {
+      mapRef.current.flyTo({
+        center: [selectedBuilding.longitude, selectedBuilding.latitude],
+        zoom: Math.max(mapRef.current.getZoom(), 16),
+        duration: 500,
+      })
+    }
+    skipFlyRef.current = false
+  }, [selectedBuilding])
 
   const handleClusterClick = useCallback((e: MapLayerMouseEvent) => {
     const feature = e.features?.[0]
@@ -69,6 +84,7 @@ export default function BuildingMap({ buildings, installation, selectedBuilding,
     const building = buildingLookup[buildingId]
     if (!building) return
 
+    skipFlyRef.current = true
     onSelectBuilding(building)
     mapRef.current?.flyTo({
       center: [building.longitude, building.latitude],
@@ -79,6 +95,21 @@ export default function BuildingMap({ buildings, installation, selectedBuilding,
 
   const handleMouseEnter = useCallback(() => setCursor('pointer'), [])
   const handleMouseLeave = useCallback(() => setCursor(''), [])
+
+  // Suppress missing sprite image warnings from OpenFreeMap Liberty style
+  const missingHandlerAttached = useRef(false)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || missingHandlerAttached.current) return
+    missingHandlerAttached.current = true
+    const handler = ({ id }: { id: string }) => {
+      if (!map.hasImage(id)) {
+        map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) })
+      }
+    }
+    map.on('styleimagemissing', handler)
+    return () => { map.off('styleimagemissing', handler) }
+  })
 
   return (
     <MapGL
@@ -155,7 +186,7 @@ export default function BuildingMap({ buildings, installation, selectedBuilding,
           layout={{
             'text-field': '{point_count_abbreviated}',
             'text-size': 13,
-            'text-font': ['Open Sans Bold'],
+            'text-font': ['Noto Sans Bold'],
           }}
           paint={{
             'text-color': '#ffffff',

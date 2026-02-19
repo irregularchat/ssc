@@ -5,6 +5,8 @@ import type { Building, Installation } from '../lib/types'
 import { BUILDING_CATEGORIES } from '../lib/types'
 import BuildingMap from '../components/BuildingMap'
 import DirectionsModal from '../components/DirectionsModal'
+import { SkeletonBuildingList } from '../components/Skeleton'
+import { SearchIcon } from '../components/Icons'
 
 const FORT_BRAGG: Installation = {
   id: 'fort-bragg',
@@ -86,36 +88,31 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="bg-olive-700 text-white px-4 py-3 flex items-center gap-3 shrink-0">
-        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">Fort Maps</a>
-        <span className="text-olive-300 text-sm hidden sm:inline">Fort Bragg, NC</span>
-        <div className="flex-1" />
-        {loading ? (
-          <span className="text-olive-300 text-sm">Loading...</span>
-        ) : (
-          <span className="text-olive-300 text-sm">{filteredBuildings.length.toLocaleString()} buildings</span>
-        )}
-        {/* Mobile view toggle */}
-        <div className="md:hidden flex gap-1 bg-olive-600 rounded-lg p-0.5">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {/* Mobile view toggle + count bar */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3 shrink-0">
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             onClick={() => setMobileView('map')}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${mobileView === 'map' ? 'bg-white/20 text-white' : 'text-olive-300'}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${mobileView === 'map' ? 'bg-white text-olive-700 shadow-sm' : 'text-gray-500'}`}
           >
             Map
           </button>
           <button
             onClick={() => setMobileView('list')}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${mobileView === 'list' ? 'bg-white/20 text-white' : 'text-olive-300'}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${mobileView === 'list' ? 'bg-white text-olive-700 shadow-sm' : 'text-gray-500'}`}
           >
             List
           </button>
         </div>
+        <div className="flex-1" />
+        {!loading && (
+          <span className="text-gray-400 text-xs">{filteredBuildings.length.toLocaleString()} buildings</span>
+        )}
       </div>
 
       {/* Search + Filters */}
-      <div className="bg-white border-b px-4 py-2 flex gap-2 items-center overflow-x-auto shrink-0">
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex gap-2 items-center overflow-x-auto shrink-0 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="relative min-w-[200px]">
           <input
             type="text"
@@ -124,9 +121,7 @@ export default function ExplorePage() {
             placeholder="Search building # or name..."
             className="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-olive-300 focus:border-olive-300"
           />
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
+          <SearchIcon className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
         <button
           onClick={() => setSelectedCategory('all')}
@@ -157,7 +152,8 @@ export default function ExplorePage() {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Map */}
-        <div className={`flex-1 ${mobileView === 'list' ? 'hidden md:block' : ''}`}>
+        <div className={`flex-1 relative ${mobileView === 'list' ? 'hidden md:block' : ''}`}>
+          <div className="absolute inset-0">
           <BuildingMap
             buildings={filteredBuildings}
             installation={mapInstallation}
@@ -165,22 +161,25 @@ export default function ExplorePage() {
             onSelectBuilding={handleSelectBuilding}
             onDirections={setDirectionsBuilding}
           />
+          </div>
         </div>
 
         {/* Sidebar / List */}
-        <div className={`w-full md:w-80 lg:w-96 overflow-y-auto border-l bg-white ${mobileView === 'map' ? 'hidden md:block' : ''}`}>
-          {loading ? (
-            <div className="flex items-center justify-center py-12 text-gray-400">
-              <svg className="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Loading buildings...
+        <div className={`w-full md:w-80 lg:w-96 overflow-y-auto border-l border-gray-200 bg-white ${mobileView === 'map' ? 'hidden md:block' : ''}`}>
+          {/* Desktop count header */}
+          {!loading && (
+            <div className="hidden md:flex items-center justify-between px-4 py-2 border-b border-gray-100 bg-gray-50">
+              <span className="text-xs text-gray-500 font-medium">
+                {filteredBuildings.length.toLocaleString()} buildings
+              </span>
             </div>
+          )}
+          {loading ? (
+            <SkeletonBuildingList count={8} />
           ) : filteredBuildings.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <p className="text-gray-500">No buildings found</p>
-              <p className="text-sm text-gray-400 mt-1">Try a different search or category</p>
+              <p className="text-gray-500 text-sm">No buildings found</p>
+              <p className="text-xs text-gray-400 mt-1">Try a different search or category</p>
             </div>
           ) : (
             filteredBuildings.map((b) => {
@@ -191,8 +190,10 @@ export default function ExplorePage() {
                   key={b.id}
                   ref={isSelected ? selectedRef : undefined}
                   onClick={() => handleSelectBuilding(b)}
-                  className={`px-4 py-3 border-b cursor-pointer transition-colors ${
-                    isSelected ? 'bg-olive-50 border-l-4 border-l-olive-500' : 'hover:bg-sand-50'
+                  className={`px-4 py-3 border-b border-gray-100 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-olive-50 border-l-4 border-l-olive-500'
+                      : 'hover:bg-gray-50 active:bg-gray-100'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -209,11 +210,11 @@ export default function ExplorePage() {
                       </span>
                     )}
                   </div>
-                  {b.name && <p className="text-sm text-gray-600 mt-0.5 ml-6">{b.name}</p>}
-                  {b.mgrs && <p className="text-xs font-mono text-amber-600/70 mt-0.5 ml-6">{b.mgrs}</p>}
+                  {b.name && <p className="text-xs text-gray-500 mt-0.5 ml-6">{b.name}</p>}
+                  {b.mgrs && <p className="text-[10px] font-mono text-amber-600/60 mt-0.5 ml-6">{b.mgrs}</p>}
                   <button
                     onClick={(e) => { e.stopPropagation(); setDirectionsBuilding(b) }}
-                    className="ml-6 mt-1.5 text-xs text-olive-500 font-medium hover:text-olive-700 hover:underline transition-colors"
+                    className="ml-6 mt-1.5 text-xs text-olive-500 font-medium hover:text-olive-700 active:scale-95 transition-all"
                   >
                     Get Directions →
                   </button>

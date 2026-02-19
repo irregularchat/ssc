@@ -12,6 +12,7 @@ import {
   estimateRouteTime,
   formatRouteSummary,
 } from '../lib/route-utils'
+import { SearchIcon, SpinnerIcon, PlusIcon, TruckIcon, CopyIcon, CheckIcon, TrashIcon } from '../components/Icons'
 
 type OriginType = 'current' | 'gate'
 
@@ -196,17 +197,27 @@ export default function DeliverPage() {
   const deliveredCount = stops.filter((s) => checkedStops.has(s.id)).length
 
   return (
-    <div className="min-h-screen bg-sand-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-olive-700 text-white px-4 py-3 flex items-center gap-3 shrink-0">
-        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">Fort Maps</a>
-        <span className="text-olive-300 text-sm">|</span>
-        <span className="font-medium text-sm">Delivery Planner</span>
-        <div className="flex-1" />
+    <div className="flex-1 overflow-auto bg-gray-50 flex flex-col">
+      {/* Page header with progress */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 shrink-0">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <h1 className="text-base font-semibold text-steel">Delivery Planner</h1>
+          {stops.length > 0 && (
+            <span className="text-sm text-gray-500">
+              {deliveredCount}/{stops.length} delivered
+            </span>
+          )}
+        </div>
+        {/* Progress bar */}
         {stops.length > 0 && (
-          <span className="text-sm text-olive-200">
-            {deliveredCount}/{stops.length} stops
-          </span>
+          <div className="max-w-2xl mx-auto mt-2">
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-olive-500 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${(deliveredCount / stops.length) * 100}%` }}
+              />
+            </div>
+          </div>
         )}
       </div>
 
@@ -260,16 +271,7 @@ export default function DeliverPage() {
           <h2 className="text-sm font-semibold text-steel mb-3">Add Delivery Stops</h2>
           <div className="relative" ref={searchRef}>
             <div className="relative">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
+              <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={query}
@@ -278,10 +280,7 @@ export default function DeliverPage() {
                 className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-olive-300 focus:border-olive-300"
               />
               {searchLoading && (
-                <svg className="animate-spin h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
+                <SpinnerIcon className="h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
               )}
             </div>
 
@@ -314,9 +313,7 @@ export default function DeliverPage() {
                         )}
                       </div>
                       <span className="text-olive-500 text-xs font-medium shrink-0 ml-2 flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
+                        <PlusIcon className="w-4 h-4" />
                         Add
                       </span>
                     </button>
@@ -355,68 +352,51 @@ export default function DeliverPage() {
           </div>
         )}
 
-        {/* Quick links when empty */}
+        {/* Empty state */}
         {stops.length === 0 && (
-          <div className="text-center py-8 space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-olive-100 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-olive-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H21M3.375 14.25h17.25a1.125 1.125 0 0 0 1.125-1.125V6.75a1.125 1.125 0 0 0-1.125-1.125H3.375a1.125 1.125 0 0 0-1.125 1.125v6.375c0 .621.504 1.125 1.125 1.125Z" />
-              </svg>
+          <div className="text-center py-10 space-y-3">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-olive-100 rounded-full">
+              <TruckIcon className="w-7 h-7 text-olive-600" />
             </div>
             <p className="text-gray-500 text-sm">Search for buildings above to plan your delivery route</p>
-            <div className="flex gap-3 justify-center">
-              <a href="/" className="text-olive-500 text-sm font-medium hover:text-olive-700">Home</a>
-              <span className="text-gray-300">|</span>
-              <a href="/explore" className="text-olive-500 text-sm font-medium hover:text-olive-700">Explore Map</a>
-            </div>
           </div>
         )}
       </div>
 
       {/* Sticky bottom action bar */}
       {stops.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 z-40">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 pb-safe z-40">
           <div className="max-w-2xl mx-auto flex gap-2">
             <button
               onClick={handleOptimize}
               disabled={stops.length < 2}
-              className="flex-1 py-3 bg-olive-100 text-olive-700 font-semibold rounded-xl hover:bg-olive-200 transition-colors disabled:opacity-40 text-sm"
+              className="flex-1 min-h-[48px] bg-olive-100 text-olive-700 font-semibold rounded-xl hover:bg-olive-200 active:scale-[0.98] transition-all disabled:opacity-40 text-sm"
             >
-              Optimize Route
+              Optimize
             </button>
             <button
               onClick={handleNavigate}
-              className="flex-1 py-3 bg-olive-600 text-white font-semibold rounded-xl hover:bg-olive-700 transition-colors text-sm"
+              className="flex-1 min-h-[48px] bg-olive-600 text-white font-semibold rounded-xl hover:bg-olive-700 active:scale-[0.98] transition-all text-sm"
             >
-              Navigate ({stops.length} stops)
+              Navigate ({stops.length})
             </button>
             <button
               onClick={handleCopySummary}
-              className={`px-3 py-3 rounded-xl border text-sm font-medium transition-all ${
+              className={`min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
                 copied
                   ? 'bg-green-50 border-green-200 text-green-600'
                   : 'border-gray-200 text-gray-500 hover:text-olive-600 hover:border-olive-300'
               }`}
               title="Copy route summary"
             >
-              {copied ? (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                </svg>
-              )}
+              {copied ? <CheckIcon /> : <CopyIcon />}
             </button>
             <button
               onClick={handleClearAll}
-              className="px-3 py-3 rounded-xl border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300 transition-all text-sm"
+              className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300 active:scale-95 transition-all"
               title="Clear all stops"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
+              <TrashIcon />
             </button>
           </div>
         </div>
