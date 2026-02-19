@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { searchBuildings } from '../lib/api'
-import { BUILDING_CATEGORIES } from '../lib/types'
 import type { Building } from '../lib/types'
 import DirectionsModal from '../components/DirectionsModal'
+import BuildingResultCard from '../components/BuildingResultCard'
 import { isMGRS, decodeMGRS } from '../lib/mgrs-utils'
 
 const DEFAULT_INSTALLATION = 'fort-bragg'
@@ -119,71 +119,13 @@ export default function HomePage() {
         )}
 
         {/* Result cards */}
-        {results.map((building) => {
-          const cat = building.category ? BUILDING_CATEGORIES[building.category] : null
-          return (
-            <div key={building.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    {cat && <span className="text-lg">{cat.icon}</span>}
-                    <h2 className="text-xl font-bold text-steel">
-                      Bldg {building.building_number}
-                    </h2>
-                  </div>
-                  {building.name && (
-                    <p className="text-olive-500 font-medium mt-0.5">{building.name}</p>
-                  )}
-                </div>
-                {cat && (
-                  <span
-                    className="text-xs font-medium px-2 py-1 rounded-full text-white shrink-0"
-                    style={{ backgroundColor: cat.color }}
-                  >
-                    {cat.label}
-                  </span>
-                )}
-              </div>
-
-              {/* Coordinates row */}
-              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
-                <span className="font-mono">{building.latitude.toFixed(6)}, {building.longitude.toFixed(6)}</span>
-                {building.mgrs && (
-                  <span className="font-mono text-amber-600" title="MGRS Grid Coordinate">
-                    MGRS: {building.mgrs}
-                  </span>
-                )}
-                {building.plus_code && (
-                  <span className="font-mono text-blue-500" title="Google Plus Code">
-                    {building.plus_code}
-                  </span>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => setDirectionsBuilding(building)}
-                  className="flex-1 py-3 bg-olive-500 text-white font-semibold rounded-xl hover:bg-olive-600 transition-colors"
-                >
-                  Get Directions
-                </button>
-                <a
-                  href={`/explore?lat=${building.latitude}&lng=${building.longitude}&zoom=17`}
-                  onClick={() => {
-                    sessionStorage.setItem('milnav-selected', building.id)
-                  }}
-                  className="px-4 py-3 border border-olive-300 text-olive-600 font-semibold rounded-xl hover:bg-olive-50 transition-colors flex items-center gap-1"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
-                  </svg>
-                  Map
-                </a>
-              </div>
-            </div>
-          )
-        })}
+        {results.map((building) => (
+          <BuildingResultCard
+            key={building.id}
+            building={building}
+            onGetDirections={setDirectionsBuilding}
+          />
+        ))}
 
         {/* Quick links when no search performed */}
         {!searched && (
