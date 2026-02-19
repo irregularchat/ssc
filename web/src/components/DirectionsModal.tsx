@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { getDirectionsUrl, type NavApp } from '../lib/directions'
+import { fetchW3WAddress } from '../lib/api'
 
 interface DirectionsModalProps {
   isOpen: boolean
@@ -8,6 +9,7 @@ interface DirectionsModalProps {
   longitude: number
   label: string
   buildingNumber?: string
+  buildingId?: string
 }
 
 const CopyIcon = () => (
@@ -25,6 +27,12 @@ const CheckIcon = () => (
 const ExternalLinkIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+  </svg>
+)
+
+const InfoIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
   </svg>
 )
 
@@ -67,9 +75,39 @@ const NAV_APPS: { id: NavApp; name: string; subtitle: string; iconBg: string; ic
   },
 ]
 
-export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber }: DirectionsModalProps) {
+// what3words logo/icon
+const W3WIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+    <path d="M4.5 4L2 20h2.5l1.5-10 1.5 10H10l1.5-10L13 20h2.5L13 4h-2.5L9 14 7.5 4H4.5zM16 4l-2.5 16H16l1.5-10L19 20h2.5L19 4h-2.5z"/>
+  </svg>
+)
+
+export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber, buildingId }: DirectionsModalProps) {
   const [copiedCoords, setCopiedCoords] = useState(false)
   const [copiedLink, setCopiedLink] = useState<NavApp | null>(null)
+  const [copiedW3W, setCopiedW3W] = useState(false)
+  const [w3wAddress, setW3WAddress] = useState<string | null>(null)
+  const [w3wLoading, setW3WLoading] = useState(false)
+  const [showW3WTooltip, setShowW3WTooltip] = useState(false)
+
+  // Fetch w3w address when modal opens
+  useEffect(() => {
+    if (isOpen && buildingId && !w3wAddress) {
+      setW3WLoading(true)
+      fetchW3WAddress(buildingId).then((data) => {
+        setW3WAddress(data.w3w_address)
+        setW3WLoading(false)
+      })
+    }
+  }, [isOpen, buildingId, w3wAddress])
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setW3WAddress(null)
+      setShowW3WTooltip(false)
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -86,6 +124,13 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
     await navigator.clipboard.writeText(url)
     setCopiedLink(app)
     setTimeout(() => setCopiedLink(null), 2000)
+  }
+
+  const handleCopyW3W = async () => {
+    if (!w3wAddress) return
+    await navigator.clipboard.writeText(`///${w3wAddress}`)
+    setCopiedW3W(true)
+    setTimeout(() => setCopiedW3W(false), 2000)
   }
 
   return (
@@ -137,6 +182,80 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
             </div>
           </div>
 
+          {/* what3words section */}
+          <div className="bg-red-50/50 p-3 rounded-xl border border-red-100">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">what3words</p>
+                  <button
+                    onClick={() => setShowW3WTooltip(!showW3WTooltip)}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    title="What is what3words?"
+                  >
+                    <InfoIcon />
+                  </button>
+                </div>
+                {w3wLoading ? (
+                  <p className="text-sm text-gray-400 mt-0.5 animate-pulse">Loading...</p>
+                ) : w3wAddress ? (
+                  <p className="text-sm font-mono text-steel mt-0.5 truncate">
+                    <span className="text-red-400">///</span>{w3wAddress}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400 mt-0.5">Not yet available for this building</p>
+                )}
+              </div>
+              <div className="flex gap-1.5 shrink-0">
+                {w3wAddress && (
+                  <>
+                    <button
+                      onClick={handleCopyW3W}
+                      className={`p-2 rounded-lg border transition-all ${
+                        copiedW3W
+                          ? 'bg-green-50 border-green-200 text-green-600'
+                          : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300'
+                      }`}
+                      title="Copy what3words address"
+                    >
+                      {copiedW3W ? <CheckIcon /> : <CopyIcon />}
+                    </button>
+                    <a
+                      href={`https://what3words.com/${w3wAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-red-500 hover:border-red-300 transition-all"
+                      title="Open in what3words"
+                    >
+                      <ExternalLinkIcon />
+                    </a>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Tooltip */}
+            {showW3WTooltip && (
+              <div className="mt-3 p-3 bg-white rounded-lg border border-red-100 text-xs text-gray-600 space-y-2">
+                <p className="font-semibold text-steel">What is what3words?</p>
+                <p>
+                  what3words divides the entire world into 3m x 3m squares and gives each one a unique 3-word address.
+                  It's used by emergency services, military, and delivery drivers to find exact locations where street addresses don't work.
+                </p>
+                <p className="font-medium text-steel">How to use it:</p>
+                <ol className="list-decimal list-inside space-y-1 text-gray-500">
+                  <li>Copy the <span className="font-mono text-red-400">///three.word.address</span> above</li>
+                  <li>Open the <a href="https://what3words.com/about" target="_blank" rel="noopener noreferrer" className="text-red-500 underline">what3words app</a> or website</li>
+                  <li>Paste it in — you'll see the exact 3m x 3m square</li>
+                  <li>Tap "Navigate" to open in your preferred maps app</li>
+                </ol>
+                <p className="text-gray-400">
+                  Great for sharing precise locations on post where "Building R2560" might not be in Google Maps.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Navigation app buttons */}
           <div className="space-y-2">
             {NAV_APPS.map((app) => (
@@ -173,6 +292,42 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
                 </button>
               </div>
             ))}
+
+            {/* what3words nav option */}
+            {w3wAddress && (
+              <div className="flex gap-2">
+                <a
+                  href={`https://what3words.com/${w3wAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-between p-3.5 bg-white hover:bg-red-50/50 border border-gray-200 hover:border-red-300 rounded-xl transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center text-red-500">
+                      <W3WIcon />
+                    </div>
+                    <div className="text-left">
+                      <span className="block font-semibold text-steel">what3words</span>
+                      <span className="text-xs text-gray-400 group-hover:text-red-400 transition-colors font-mono">
+                        ///{w3wAddress}
+                      </span>
+                    </div>
+                  </div>
+                  <ExternalLinkIcon />
+                </a>
+                <button
+                  onClick={handleCopyW3W}
+                  className={`w-12 flex items-center justify-center rounded-xl border transition-all ${
+                    copiedW3W
+                      ? 'bg-green-50 border-green-200 text-green-600'
+                      : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300'
+                  }`}
+                  title="Copy what3words address"
+                >
+                  {copiedW3W ? <CheckIcon /> : <CopyIcon />}
+                </button>
+              </div>
+            )}
           </div>
 
           <p className="text-center text-xs text-gray-400">

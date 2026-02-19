@@ -155,6 +155,7 @@ export default function HomePage() {
           longitude={directionsBuilding.longitude}
           label={`Building ${directionsBuilding.building_number}${directionsBuilding.name ? ` — ${directionsBuilding.name}` : ''}`}
           buildingNumber={directionsBuilding.building_number}
+          buildingId={directionsBuilding.id}
         />
       )}
     </div>

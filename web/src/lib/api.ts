@@ -27,6 +27,15 @@ export async function fetchBuildingCategories(installation: string): Promise<{ c
   return res.data
 }
 
+export async function fetchW3WAddress(buildingId: string): Promise<{ w3w_address: string | null; url?: string; short_url?: string }> {
+  try {
+    const res = await fetchJSON<{ data: { w3w_address: string | null; url?: string; short_url?: string } }>(`${BASE}/buildings/${buildingId}/w3w`)
+    return res.data
+  } catch {
+    return { w3w_address: null }
+  }
+}
+
 export async function submitBuilding(data: {
   installation_id: string
   building_number: string

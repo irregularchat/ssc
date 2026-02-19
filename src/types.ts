@@ -1,6 +1,7 @@
 export interface Bindings {
   DB: D1Database
   TIMEZONE: string
+  W3W_API_KEY?: string
 }
 
 export interface Installation {

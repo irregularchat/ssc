@@ -97,6 +97,64 @@ app.get('/:id', async (c) => {
   return c.json({ data: result })
 })
 
+// GET /api/buildings/:id/w3w — Get what3words address (lazy convert + cache)
+app.get('/:id/w3w', async (c) => {
+  const id = c.req.param('id')
+  const building = await c.env.DB.prepare(
+    'SELECT id, building_number, latitude, longitude, w3w_address FROM buildings WHERE id = ?'
+  ).bind(id).first<{ id: string; building_number: string; latitude: number; longitude: number; w3w_address: string | null }>()
+
+  if (!building) return c.json({ error: 'Building not found' }, 404)
+
+  // Return cached w3w address if we have it
+  if (building.w3w_address) {
+    return c.json({
+      data: {
+        w3w_address: building.w3w_address,
+        url: `https://what3words.com/${building.w3w_address}`,
+        short_url: `https://w3w.co/${building.w3w_address}`,
+      }
+    })
+  }
+
+  // No API key configured — return null gracefully
+  const apiKey = c.env.W3W_API_KEY
+  if (!apiKey) {
+    return c.json({
+      data: { w3w_address: null, error: 'what3words API key not configured' }
+    })
+  }
+
+  // Call what3words API to convert coordinates
+  try {
+    const res = await fetch(
+      `https://api.what3words.com/v3/convert-to-3wa?key=${apiKey}&coordinates=${building.latitude},${building.longitude}&language=en&format=json`
+    )
+    if (!res.ok) {
+      const err = await res.text()
+      return c.json({ data: { w3w_address: null, error: `w3w API error: ${res.status}` } })
+    }
+
+    const data = await res.json<{ words: string }>()
+    const w3wAddress = data.words
+
+    // Cache in D1 so we never call the API for this building again
+    await c.env.DB.prepare(
+      'UPDATE buildings SET w3w_address = ? WHERE id = ?'
+    ).bind(w3wAddress, building.id).run()
+
+    return c.json({
+      data: {
+        w3w_address: w3wAddress,
+        url: `https://what3words.com/${w3wAddress}`,
+        short_url: `https://w3w.co/${w3wAddress}`,
+      }
+    })
+  } catch (err) {
+    return c.json({ data: { w3w_address: null, error: 'Failed to fetch w3w address' } })
+  }
+})
+
 // GET /api/buildings/:id/directions — Navigation deep links
 app.get('/:id/directions', async (c) => {
   const id = c.req.param('id')
