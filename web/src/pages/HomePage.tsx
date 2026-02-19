@@ -3,6 +3,7 @@ import { searchBuildings } from '../lib/api'
 import { BUILDING_CATEGORIES } from '../lib/types'
 import type { Building } from '../lib/types'
 import DirectionsModal from '../components/DirectionsModal'
+import { isMGRS, decodeMGRS } from '../lib/mgrs-utils'
 
 const DEFAULT_INSTALLATION = 'fort-bragg'
 
@@ -31,13 +32,22 @@ export default function HomePage() {
     if (e.key === 'Enter') handleSearch()
   }
 
+  // When search returns no results and query looks like MGRS, decode it
+  const mgrsLocation =
+    searched && !loading && results.length === 0 && isMGRS(query.trim())
+      ? decodeMGRS(query.trim())
+      : null
+
   return (
     <div className="min-h-screen bg-sand-50">
       {/* Hero */}
-      <div className="bg-olive-700 text-white py-16 px-4">
+      <div className="bg-olive-700 text-white py-14 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">MilNav</h1>
-          <p className="mt-2 text-olive-200 text-lg">Find any building on post</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Fort Maps</h1>
+          <p className="mt-3 text-olive-200 text-base md:text-lg leading-relaxed max-w-lg mx-auto">
+            Search any building on a military installation by number, name, or MGRS grid coordinate.
+            Get instant directions via Google Maps, Apple Maps, or Waze — plus MGRS and GPS coordinates for every location.
+          </p>
 
           {/* Search */}
           <div className="mt-8 flex gap-2 max-w-lg mx-auto">
@@ -46,8 +56,8 @@ export default function HomePage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Building number (e.g., R2560, 32920)"
-              className="flex-1 px-4 py-3 rounded-xl text-steel bg-white text-lg focus:outline-none focus:ring-2 focus:ring-sand-300"
+              placeholder="Building #, name, or MGRS (e.g. 17SPU8341291718)"
+              className="flex-1 px-4 py-3 rounded-xl text-steel bg-white text-base focus:outline-none focus:ring-2 focus:ring-sand-300"
             />
             <button
               onClick={handleSearch}
@@ -58,7 +68,7 @@ export default function HomePage() {
             </button>
           </div>
 
-          <p className="mt-3 text-olive-300 text-sm">Fort Bragg, NC — 5,668 buildings</p>
+          <p className="mt-3 text-olive-300 text-sm">Fort Liberty (Bragg), NC — 5,668 buildings</p>
         </div>
       </div>
 
@@ -67,20 +77,48 @@ export default function HomePage() {
         {loading && (
           <div className="flex items-center justify-center py-8 text-gray-400">
             <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             Searching...
           </div>
         )}
 
+        {/* No results — MGRS fallback */}
         {searched && !loading && results.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-500">No buildings found for &quot;{query}&quot;</p>
-            <p className="text-sm text-gray-400 mt-1">Try a different building number or browse the <a href="/explore" className="text-olive-500 underline">map</a></p>
+            {mgrsLocation ? (
+              <>
+                <p className="text-gray-600 font-medium">
+                  No building found at MGRS <span className="font-mono text-olive-600">{query.trim().toUpperCase()}</span>
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Decoded to {mgrsLocation.latitude.toFixed(6)}, {mgrsLocation.longitude.toFixed(6)}
+                </p>
+                <a
+                  href={`/explore?lat=${mgrsLocation.latitude}&lng=${mgrsLocation.longitude}&zoom=17`}
+                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-olive-500 text-white font-semibold rounded-xl hover:bg-olive-600 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
+                  View this location on the map
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500">No buildings found for &quot;{query}&quot;</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Try a building number, name, or MGRS coordinate — or browse the{' '}
+                  <a href="/explore" className="text-olive-500 underline">map</a>
+                </p>
+              </>
+            )}
           </div>
         )}
 
+        {/* Result cards */}
         {results.map((building) => {
           const cat = building.category ? BUILDING_CATEGORIES[building.category] : null
           return (
@@ -107,6 +145,22 @@ export default function HomePage() {
                 )}
               </div>
 
+              {/* Coordinates row */}
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+                <span className="font-mono">{building.latitude.toFixed(6)}, {building.longitude.toFixed(6)}</span>
+                {building.mgrs && (
+                  <span className="font-mono text-amber-600" title="MGRS Grid Coordinate">
+                    MGRS: {building.mgrs}
+                  </span>
+                )}
+                {building.plus_code && (
+                  <span className="font-mono text-blue-500" title="Google Plus Code">
+                    {building.plus_code}
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => setDirectionsBuilding(building)}
@@ -115,9 +169,8 @@ export default function HomePage() {
                   Get Directions
                 </button>
                 <a
-                  href="/explore"
+                  href={`/explore?lat=${building.latitude}&lng=${building.longitude}&zoom=17`}
                   onClick={() => {
-                    // Store selected building for the explore page to pick up
                     sessionStorage.setItem('milnav-selected', building.id)
                   }}
                   className="px-4 py-3 border border-olive-300 text-olive-600 font-semibold rounded-xl hover:bg-olive-50 transition-colors flex items-center gap-1"
@@ -132,7 +185,7 @@ export default function HomePage() {
           )
         })}
 
-        {/* Quick links */}
+        {/* Quick links when no search performed */}
         {!searched && (
           <div className="text-center py-8 space-y-4">
             <a href="/explore" className="inline-flex items-center gap-2 text-olive-500 text-lg font-medium hover:text-olive-700 transition-colors">
@@ -147,7 +200,7 @@ export default function HomePage() {
               </svg>
               Delivery Driver Mode
             </a>
-            <p className="text-sm text-gray-400">5,668 buildings at Fort Bragg</p>
+            <p className="text-sm text-gray-400">5,668 buildings at Fort Liberty (Bragg)</p>
           </div>
         )}
       </div>

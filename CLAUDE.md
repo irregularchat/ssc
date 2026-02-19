@@ -1,4 +1,4 @@
-# MilNav — Project Rules
+# Fort Maps — Project Rules
 
 ## Deployment
 

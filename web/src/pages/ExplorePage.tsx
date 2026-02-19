@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchBuildings, fetchBuildingCategories } from '../lib/api'
 import type { Building, Installation } from '../lib/types'
 import { BUILDING_CATEGORIES } from '../lib/types'
@@ -16,6 +17,7 @@ const FORT_BRAGG: Installation = {
 }
 
 export default function ExplorePage() {
+  const [searchParams] = useSearchParams()
   const [buildings, setBuildings] = useState<Building[]>([])
   const [categories, setCategories] = useState<{ category: string; count: number }[]>([])
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -60,6 +62,22 @@ export default function ExplorePage() {
     return result
   }, [buildings, selectedCategory, searchQuery])
 
+  // Override map center if URL has ?lat=X&lng=Y&zoom=Z params
+  const mapInstallation = useMemo<Installation>(() => {
+    const lat = parseFloat(searchParams.get('lat') || '')
+    const lng = parseFloat(searchParams.get('lng') || '')
+    const zoom = parseFloat(searchParams.get('zoom') || '')
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return {
+        ...FORT_BRAGG,
+        center_latitude: lat,
+        center_longitude: lng,
+        default_zoom: !isNaN(zoom) ? zoom : 17,
+      }
+    }
+    return FORT_BRAGG
+  }, [searchParams])
+
   const handleSelectBuilding = (building: Building | null) => {
     setSelectedBuilding(building)
     if (building && mobileView === 'list') {
@@ -71,7 +89,7 @@ export default function ExplorePage() {
     <div className="h-screen flex flex-col">
       {/* Header */}
       <div className="bg-olive-700 text-white px-4 py-3 flex items-center gap-3 shrink-0">
-        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">MilNav</a>
+        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">Fort Maps</a>
         <span className="text-olive-300 text-sm hidden sm:inline">Fort Bragg, NC</span>
         <div className="flex-1" />
         {loading ? (
@@ -142,7 +160,7 @@ export default function ExplorePage() {
         <div className={`flex-1 ${mobileView === 'list' ? 'hidden md:block' : ''}`}>
           <BuildingMap
             buildings={filteredBuildings}
-            installation={FORT_BRAGG}
+            installation={mapInstallation}
             selectedBuilding={selectedBuilding}
             onSelectBuilding={handleSelectBuilding}
             onDirections={setDirectionsBuilding}

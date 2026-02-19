@@ -127,7 +127,7 @@ export function estimateRouteTime(
  */
 export function formatRouteSummary(stops: Building[]): string {
   const lines: string[] = [
-    'MilNav Delivery Route — Fort Bragg',
+    'Fort Maps Delivery Route — Fort Bragg',
     '===================================',
   ]
 

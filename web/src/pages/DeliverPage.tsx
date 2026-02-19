@@ -154,21 +154,20 @@ export default function DeliverPage() {
   }, [origin, currentPos])
 
   const handleNavigate = useCallback(() => {
-    let allStops: Array<{ latitude: number; longitude: number }>
-    if (origin === 'gate') {
-      allStops = [{ latitude: H1575_GATE.latitude, longitude: H1575_GATE.longitude }, ...stops]
-    } else if (currentPos) {
-      allStops = [{ latitude: currentPos.latitude, longitude: currentPos.longitude }, ...stops]
+    if (stops.length === 0) return
+
+    // Build waypoints: always start from user's current location, then gate (if selected), then stops
+    const gateCoord = { latitude: H1575_GATE.latitude, longitude: H1575_GATE.longitude }
+    const stopsWithGate = origin === 'gate' ? [gateCoord, ...stops] : stops
+
+    if (currentPos) {
+      const allStops = [{ latitude: currentPos.latitude, longitude: currentPos.longitude }, ...stopsWithGate]
+      const urls = buildGoogleMapsUrl(allStops)
+      if (urls.length > 0) window.open(urls[0], '_blank')
     } else {
-      // No GPS available — open Google Maps with "My Location" as origin
-      if (stops.length === 0) return
-      const coords = stops.map((s) => `${s.latitude},${s.longitude}`).join('/')
+      // No GPS — let Google Maps use "My Location" as origin
+      const coords = stopsWithGate.map((s) => `${s.latitude},${s.longitude}`).join('/')
       window.open(`https://www.google.com/maps/dir/My+Location/${coords}`, '_blank')
-      return
-    }
-    const urls = buildGoogleMapsUrl(allStops)
-    if (urls.length > 0) {
-      window.open(urls[0], '_blank')
     }
   }, [origin, stops, currentPos])
 
@@ -200,7 +199,7 @@ export default function DeliverPage() {
     <div className="min-h-screen bg-sand-50 flex flex-col">
       {/* Header */}
       <div className="bg-olive-700 text-white px-4 py-3 flex items-center gap-3 shrink-0">
-        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">MilNav</a>
+        <a href="/" className="font-bold text-lg hover:text-sand-200 transition-colors">Fort Maps</a>
         <span className="text-olive-300 text-sm">|</span>
         <span className="font-medium text-sm">Delivery Planner</span>
         <div className="flex-1" />
