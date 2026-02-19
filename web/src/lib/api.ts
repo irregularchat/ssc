@@ -11,7 +11,7 @@ async function fetchJSON<T>(url: string): Promise<T> {
 export async function fetchBuildings(installation: string, category?: string): Promise<{ data: Building[]; total: number }> {
   const params = new URLSearchParams({ installation })
   if (category && category !== 'all') params.set('category', category)
-  params.set('limit', '1000')
+  params.set('limit', '10000')
   return fetchJSON<{ data: Building[]; total: number }>(`${BASE}/buildings?${params}`)
 }
 

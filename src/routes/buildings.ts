@@ -11,7 +11,7 @@ app.get('/', async (c) => {
   }
 
   const category = c.req.query('category')
-  const limit = Math.min(parseInt(c.req.query('limit') || '500'), 1000)
+  const limit = Math.min(parseInt(c.req.query('limit') || '500'), 10000)
   const offset = parseInt(c.req.query('offset') || '0')
 
   let query = 'SELECT * FROM buildings WHERE installation_id = ?'
