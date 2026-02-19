@@ -141,6 +141,12 @@ export default function HomePage() {
               </svg>
               Browse all buildings on the map
             </a>
+            <a href="/deliver" className="inline-flex items-center gap-2 text-olive-500 text-lg font-medium hover:text-olive-700 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H21M3.375 14.25h17.25a1.125 1.125 0 0 0 1.125-1.125V6.75a1.125 1.125 0 0 0-1.125-1.125H3.375a1.125 1.125 0 0 0-1.125 1.125v6.375c0 .621.504 1.125 1.125 1.125Z" />
+              </svg>
+              Delivery Driver Mode
+            </a>
             <p className="text-sm text-gray-400">5,668 buildings at Fort Bragg</p>
           </div>
         )}
