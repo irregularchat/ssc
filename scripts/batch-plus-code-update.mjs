@@ -31,8 +31,9 @@ for (const b of buildings) {
     skipped++
     continue
   }
-  // encode(lat, lng, codeLength) — 11 digits = ~3m x 3m precision
-  const code = olc.encode(b.latitude, b.longitude, 11)
+  // encode(lat, lng, codeLength) — 10 digits = ~14m x 14m (standard Google format)
+  // NOTE: length 11 adds grid refinement that Google Maps doesn't handle well
+  const code = olc.encode(b.latitude, b.longitude, 10)
   sql += `UPDATE buildings SET plus_code = '${code}' WHERE id = '${b.id}';\n`
   converted++
 }
