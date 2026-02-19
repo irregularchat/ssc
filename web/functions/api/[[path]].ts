@@ -2,7 +2,7 @@
  * API Proxy — forwards /api/* requests to the MilNav Worker backend.
  */
 
-const WORKER_URL = 'https://milnav.ACCOUNT_SUBDOMAIN.workers.dev'
+const WORKER_URL = 'https://milnav.wemea-5ahhf.workers.dev'
 
 async function handleRequest(context: EventContext<unknown, string, unknown>): Promise<Response> {
   const { request, params, next } = context

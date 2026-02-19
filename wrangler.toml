@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "milnav-db"
-database_id = "PLACEHOLDER_REPLACE_AFTER_CREATION"
+database_id = "607c5700-8a1d-4333-b34a-d6a75a3f1a5a"
 
 [placement]
 mode = "smart"
