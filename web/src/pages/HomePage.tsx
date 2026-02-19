@@ -157,6 +157,7 @@ export default function HomePage() {
           buildingNumber={directionsBuilding.building_number}
           buildingId={directionsBuilding.id}
           mgrs={directionsBuilding.mgrs}
+          plusCode={directionsBuilding.plus_code}
         />
       )}
     </div>

@@ -22,6 +22,7 @@ export interface Building {
   verified: number
   source: string | null
   mgrs: string | null
+  plus_code: string | null
 }
 
 export const BUILDING_CATEGORIES: Record<string, { label: string; color: string; icon: string }> = {

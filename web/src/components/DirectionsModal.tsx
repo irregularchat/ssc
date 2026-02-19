@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { getDirectionsUrl, type NavApp } from '../lib/directions'
-import { fetchW3WAddress } from '../lib/api'
 
 interface DirectionsModalProps {
   isOpen: boolean
@@ -11,6 +10,7 @@ interface DirectionsModalProps {
   buildingNumber?: string
   buildingId?: string
   mgrs?: string | null
+  plusCode?: string | null
 }
 
 const CopyIcon = () => (
@@ -76,40 +76,12 @@ const NAV_APPS: { id: NavApp; name: string; subtitle: string; iconBg: string; ic
   },
 ]
 
-// what3words logo/icon
-const W3WIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-    <path d="M4.5 4L2 20h2.5l1.5-10 1.5 10H10l1.5-10L13 20h2.5L13 4h-2.5L9 14 7.5 4H4.5zM16 4l-2.5 16H16l1.5-10L19 20h2.5L19 4h-2.5z"/>
-  </svg>
-)
-
-export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber, buildingId, mgrs }: DirectionsModalProps) {
+export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber, mgrs, plusCode }: DirectionsModalProps) {
   const [copiedCoords, setCopiedCoords] = useState(false)
   const [copiedMGRS, setCopiedMGRS] = useState(false)
+  const [copiedPlusCode, setCopiedPlusCode] = useState(false)
   const [copiedLink, setCopiedLink] = useState<NavApp | null>(null)
-  const [copiedW3W, setCopiedW3W] = useState(false)
-  const [w3wAddress, setW3WAddress] = useState<string | null>(null)
-  const [w3wLoading, setW3WLoading] = useState(false)
-  const [showW3WTooltip, setShowW3WTooltip] = useState(false)
-
-  // Fetch w3w address when modal opens
-  useEffect(() => {
-    if (isOpen && buildingId && !w3wAddress) {
-      setW3WLoading(true)
-      fetchW3WAddress(buildingId).then((data) => {
-        setW3WAddress(data.w3w_address)
-        setW3WLoading(false)
-      })
-    }
-  }, [isOpen, buildingId, w3wAddress])
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setW3WAddress(null)
-      setShowW3WTooltip(false)
-    }
-  }, [isOpen])
+  const [showPlusCodeTooltip, setShowPlusCodeTooltip] = useState(false)
 
   if (!isOpen) return null
 
@@ -128,18 +100,18 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
     setTimeout(() => setCopiedMGRS(false), 2000)
   }
 
+  const handleCopyPlusCode = async () => {
+    if (!plusCode) return
+    await navigator.clipboard.writeText(plusCode)
+    setCopiedPlusCode(true)
+    setTimeout(() => setCopiedPlusCode(false), 2000)
+  }
+
   const handleCopyLink = async (app: NavApp) => {
     const url = getDirectionsUrl(latitude, longitude, app)
     await navigator.clipboard.writeText(url)
     setCopiedLink(app)
     setTimeout(() => setCopiedLink(null), 2000)
-  }
-
-  const handleCopyW3W = async () => {
-    if (!w3wAddress) return
-    await navigator.clipboard.writeText(`///${w3wAddress}`)
-    setCopiedW3W(true)
-    setTimeout(() => setCopiedW3W(false), 2000)
   }
 
   return (
@@ -215,79 +187,68 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
             </div>
           )}
 
-          {/* what3words section */}
-          <div className="bg-red-50/50 p-3 rounded-xl border border-red-100">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">what3words</p>
-                  <button
-                    onClick={() => setShowW3WTooltip(!showW3WTooltip)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                    title="What is what3words?"
-                  >
-                    <InfoIcon />
-                  </button>
-                </div>
-                {w3wLoading ? (
-                  <p className="text-sm text-gray-400 mt-0.5 animate-pulse">Loading...</p>
-                ) : w3wAddress ? (
-                  <p className="text-sm font-mono text-steel mt-0.5 truncate">
-                    <span className="text-red-400">///</span>{w3wAddress}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-400 mt-0.5">Not yet available for this building</p>
-                )}
-              </div>
-              <div className="flex gap-1.5 shrink-0">
-                {w3wAddress && (
-                  <>
+          {/* Plus Code section */}
+          {plusCode && (
+            <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plus Code</p>
                     <button
-                      onClick={handleCopyW3W}
-                      className={`p-2 rounded-lg border transition-all ${
-                        copiedW3W
-                          ? 'bg-green-50 border-green-200 text-green-600'
-                          : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300'
-                      }`}
-                      title="Copy what3words address"
+                      onClick={() => setShowPlusCodeTooltip(!showPlusCodeTooltip)}
+                      className="text-gray-400 hover:text-blue-500 transition-colors"
+                      title="What is a Plus Code?"
                     >
-                      {copiedW3W ? <CheckIcon /> : <CopyIcon />}
+                      <InfoIcon />
                     </button>
-                    <a
-                      href={`https://what3words.com/${w3wAddress}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-red-500 hover:border-red-300 transition-all"
-                      title="Open in what3words"
-                    >
-                      <ExternalLinkIcon />
-                    </a>
-                  </>
-                )}
+                  </div>
+                  <p className="text-sm font-mono text-steel mt-0.5 tracking-wider">{plusCode}</p>
+                </div>
+                <div className="flex gap-1.5 shrink-0">
+                  <button
+                    onClick={handleCopyPlusCode}
+                    className={`p-2 rounded-lg border transition-all ${
+                      copiedPlusCode
+                        ? 'bg-green-50 border-green-200 text-green-600'
+                        : 'bg-white border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-300'
+                    }`}
+                    title="Copy Plus Code"
+                  >
+                    {copiedPlusCode ? <CheckIcon /> : <CopyIcon />}
+                  </button>
+                  <a
+                    href={`https://plus.codes/${plusCode}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-500 hover:border-blue-300 transition-all"
+                    title="Open in Plus Codes"
+                  >
+                    <ExternalLinkIcon />
+                  </a>
+                </div>
               </div>
-            </div>
 
-            {/* Tooltip */}
-            {showW3WTooltip && (
-              <div className="mt-3 p-3 bg-white rounded-lg border border-red-100 text-xs text-gray-600 space-y-2">
-                <p className="font-semibold text-steel">What is what3words?</p>
-                <p>
-                  what3words divides the entire world into 3m x 3m squares and gives each one a unique 3-word address.
-                  It's used by emergency services, military, and delivery drivers to find exact locations where street addresses don't work.
-                </p>
-                <p className="font-medium text-steel">How to use it:</p>
-                <ol className="list-decimal list-inside space-y-1 text-gray-500">
-                  <li>Copy the <span className="font-mono text-red-400">///three.word.address</span> above</li>
-                  <li>Open the <a href="https://what3words.com/about" target="_blank" rel="noopener noreferrer" className="text-red-500 underline">what3words app</a> or website</li>
-                  <li>Paste it in — you'll see the exact 3m x 3m square</li>
-                  <li>Tap "Navigate" to open in your preferred maps app</li>
-                </ol>
-                <p className="text-gray-400">
-                  Great for sharing precise locations on post where "Building R2560" might not be in Google Maps.
-                </p>
-              </div>
-            )}
-          </div>
+              {/* Tooltip */}
+              {showPlusCodeTooltip && (
+                <div className="mt-3 p-3 bg-white rounded-lg border border-blue-100 text-xs text-gray-600 space-y-2">
+                  <p className="font-semibold text-steel">What is a Plus Code?</p>
+                  <p>
+                    Plus Codes (Open Location Code) are short codes created by Google that work like street addresses for places that don't have one.
+                    Each code represents a ~3m x 3m area — precise enough to find a specific building entrance.
+                  </p>
+                  <p className="font-medium text-steel">How to use it:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-500">
+                    <li>Copy the code above (e.g. <span className="font-mono text-blue-500">87735266+397</span>)</li>
+                    <li>Paste it directly into <span className="font-semibold">Google Maps</span> search bar</li>
+                    <li>Google Maps will navigate you to the exact spot</li>
+                  </ol>
+                  <p className="text-gray-400">
+                    Works offline, no app needed — just paste into Google Maps. Free and open-source.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Navigation app buttons */}
           <div className="space-y-2">
@@ -326,38 +287,40 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
               </div>
             ))}
 
-            {/* what3words nav option */}
-            {w3wAddress && (
+            {/* Plus Code nav option */}
+            {plusCode && (
               <div className="flex gap-2">
                 <a
-                  href={`https://what3words.com/${w3wAddress}`}
+                  href={`https://plus.codes/${plusCode}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-between p-3.5 bg-white hover:bg-red-50/50 border border-gray-200 hover:border-red-300 rounded-xl transition-all group"
+                  className="flex-1 flex items-center justify-between p-3.5 bg-white hover:bg-blue-50/50 border border-gray-200 hover:border-blue-300 rounded-xl transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center text-red-500">
-                      <W3WIcon />
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
                     </div>
                     <div className="text-left">
-                      <span className="block font-semibold text-steel">what3words</span>
-                      <span className="text-xs text-gray-400 group-hover:text-red-400 transition-colors font-mono">
-                        ///{w3wAddress}
+                      <span className="block font-semibold text-steel">Plus Code</span>
+                      <span className="text-xs text-gray-400 group-hover:text-blue-400 transition-colors font-mono">
+                        {plusCode}
                       </span>
                     </div>
                   </div>
                   <ExternalLinkIcon />
                 </a>
                 <button
-                  onClick={handleCopyW3W}
+                  onClick={handleCopyPlusCode}
                   className={`w-12 flex items-center justify-center rounded-xl border transition-all ${
-                    copiedW3W
+                    copiedPlusCode
                       ? 'bg-green-50 border-green-200 text-green-600'
-                      : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300'
+                      : 'bg-white border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-300'
                   }`}
-                  title="Copy what3words address"
+                  title="Copy Plus Code"
                 >
-                  {copiedW3W ? <CheckIcon /> : <CopyIcon />}
+                  {copiedPlusCode ? <CheckIcon /> : <CopyIcon />}
                 </button>
               </div>
             )}

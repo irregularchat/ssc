@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "hono": "^4.11.3",
-    "mgrs": "^2.1.0"
+    "mgrs": "^2.1.0",
+    "open-location-code": "^1.0.3"
   }
 }

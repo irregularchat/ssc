@@ -217,6 +217,7 @@ export default function ExplorePage() {
           buildingNumber={directionsBuilding.building_number}
           buildingId={directionsBuilding.id}
           mgrs={directionsBuilding.mgrs}
+          plusCode={directionsBuilding.plus_code}
         />
       )}
     </div>
