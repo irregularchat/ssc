@@ -14,7 +14,12 @@
     "type": "git",
     "url": "git+https://github.com/gitayam/milnav.git"
   },
-  "keywords": ["military", "navigation", "building-numbers", "cloudflare-workers"],
+  "keywords": [
+    "military",
+    "navigation",
+    "building-numbers",
+    "cloudflare-workers"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -23,6 +28,7 @@
     "wrangler": "^4.54.0"
   },
   "dependencies": {
-    "hono": "^4.11.3"
+    "hono": "^4.11.3",
+    "mgrs": "^2.1.0"
   }
 }

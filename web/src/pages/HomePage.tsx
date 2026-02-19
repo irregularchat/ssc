@@ -156,6 +156,7 @@ export default function HomePage() {
           label={`Building ${directionsBuilding.building_number}${directionsBuilding.name ? ` — ${directionsBuilding.name}` : ''}`}
           buildingNumber={directionsBuilding.building_number}
           buildingId={directionsBuilding.id}
+          mgrs={directionsBuilding.mgrs}
         />
       )}
     </div>

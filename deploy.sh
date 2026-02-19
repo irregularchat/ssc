@@ -62,6 +62,10 @@ if [ "$DEPLOY_WEB" = true ]; then
     fi
     echo "${GREEN}Build verified${NC}"
 
+    # Copy Pages Functions into dist so they get deployed
+    rsync -av functions/ dist/functions/
+    echo "${GREEN}Functions copied to dist${NC}"
+
     npx wrangler pages deploy dist --project-name=milnav --commit-dirty=true
     cd ..
     echo "${GREEN}Web Frontend deployed${NC}"

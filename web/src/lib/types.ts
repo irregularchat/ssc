@@ -21,6 +21,7 @@ export interface Building {
   floor_count: number | null
   verified: number
   source: string | null
+  mgrs: string | null
 }
 
 export const BUILDING_CATEGORIES: Record<string, { label: string; color: string; icon: string }> = {

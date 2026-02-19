@@ -56,14 +56,16 @@ app.get('/search', async (c) => {
   const results = await c.env.DB.prepare(`
     SELECT * FROM buildings
     WHERE installation_id = ?
-      AND (building_number LIKE ? OR name LIKE ? OR description LIKE ? OR address LIKE ?)
+      AND (building_number LIKE ? OR name LIKE ? OR description LIKE ? OR address LIKE ? OR mgrs LIKE ?)
     ORDER BY
       CASE WHEN building_number = ? THEN 0
+           WHEN mgrs = ? THEN 0
            WHEN building_number LIKE ? THEN 1
+           WHEN mgrs LIKE ? THEN 1
            ELSE 2 END,
       building_number ASC
     LIMIT 20
-  `).bind(installation, searchTerm, searchTerm, searchTerm, searchTerm, q, `${q}%`).all()
+  `).bind(installation, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, q, q.toUpperCase(), `${q}%`, `${q.toUpperCase()}%`).all()
 
   return c.json({ data: results.results, count: results.results.length })
 })

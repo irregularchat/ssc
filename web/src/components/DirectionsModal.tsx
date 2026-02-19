@@ -10,6 +10,7 @@ interface DirectionsModalProps {
   label: string
   buildingNumber?: string
   buildingId?: string
+  mgrs?: string | null
 }
 
 const CopyIcon = () => (
@@ -82,8 +83,9 @@ const W3WIcon = () => (
   </svg>
 )
 
-export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber, buildingId }: DirectionsModalProps) {
+export default function DirectionsModal({ isOpen, onClose, latitude, longitude, label, buildingNumber, buildingId, mgrs }: DirectionsModalProps) {
   const [copiedCoords, setCopiedCoords] = useState(false)
+  const [copiedMGRS, setCopiedMGRS] = useState(false)
   const [copiedLink, setCopiedLink] = useState<NavApp | null>(null)
   const [copiedW3W, setCopiedW3W] = useState(false)
   const [w3wAddress, setW3WAddress] = useState<string | null>(null)
@@ -117,6 +119,13 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
     await navigator.clipboard.writeText(coords)
     setCopiedCoords(true)
     setTimeout(() => setCopiedCoords(false), 2000)
+  }
+
+  const handleCopyMGRS = async () => {
+    if (!mgrs) return
+    await navigator.clipboard.writeText(mgrs)
+    setCopiedMGRS(true)
+    setTimeout(() => setCopiedMGRS(false), 2000)
   }
 
   const handleCopyLink = async (app: NavApp) => {
@@ -181,6 +190,30 @@ export default function DirectionsModal({ isOpen, onClose, latitude, longitude, 
               </button>
             </div>
           </div>
+
+          {/* MGRS section */}
+          {mgrs && (
+            <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">MGRS</p>
+                  <p className="text-sm font-mono text-steel mt-0.5 tracking-wider">{mgrs}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Military Grid Reference System</p>
+                </div>
+                <button
+                  onClick={handleCopyMGRS}
+                  className={`p-2 rounded-lg border transition-all ${
+                    copiedMGRS
+                      ? 'bg-green-50 border-green-200 text-green-600'
+                      : 'bg-white border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300'
+                  }`}
+                  title="Copy MGRS coordinate"
+                >
+                  {copiedMGRS ? <CheckIcon /> : <CopyIcon />}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* what3words section */}
           <div className="bg-red-50/50 p-3 rounded-xl border border-red-100">

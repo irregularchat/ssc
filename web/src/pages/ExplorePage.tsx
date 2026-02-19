@@ -192,6 +192,7 @@ export default function ExplorePage() {
                     )}
                   </div>
                   {b.name && <p className="text-sm text-gray-600 mt-0.5 ml-6">{b.name}</p>}
+                  {b.mgrs && <p className="text-xs font-mono text-amber-600/70 mt-0.5 ml-6">{b.mgrs}</p>}
                   <button
                     onClick={(e) => { e.stopPropagation(); setDirectionsBuilding(b) }}
                     className="ml-6 mt-1.5 text-xs text-olive-500 font-medium hover:text-olive-700 hover:underline transition-colors"
@@ -215,6 +216,7 @@ export default function ExplorePage() {
           label={`Building ${directionsBuilding.building_number}${directionsBuilding.name ? ` — ${directionsBuilding.name}` : ''}`}
           buildingNumber={directionsBuilding.building_number}
           buildingId={directionsBuilding.id}
+          mgrs={directionsBuilding.mgrs}
         />
       )}
     </div>

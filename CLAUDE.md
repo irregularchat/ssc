@@ -49,7 +49,16 @@ milnav/
 
 - **Library:** MapLibre GL + react-map-gl
 - **Tiles:** OpenFreeMap Liberty (free, no API keys)
-- **Pattern:** All map components use DirectionsModal for navigation (Google Maps, Apple Maps, Waze)
+- **Pattern:** All map components use DirectionsModal for navigation (Google Maps, Apple Maps, Waze, what3words)
+
+## Coordinates
+
+- **GPS:** Standard lat/lng stored in `latitude`/`longitude` columns
+- **MGRS:** Military Grid Reference System stored in `mgrs` column (all 5,668 buildings populated)
+- **MGRS Zone:** Fort Bragg falls in `17SPU` (UTM Zone 17, band S, 100km square PU)
+- **what3words:** Lazy-cached via API in `w3w_address` column (requires `W3W_API_KEY` secret)
+- **MGRS Package:** `mgrs` npm — CRITICAL: `forward([longitude, latitude], 5)` takes **lon/lat** order, NOT lat/lng
+- **Search:** Users can search by building number, name, address, or MGRS coordinate
 
 ## Data Sources
 
