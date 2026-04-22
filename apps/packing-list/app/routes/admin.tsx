@@ -10,8 +10,8 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  requireAdmin(request)
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  await requireAdmin(request, context as Parameters<typeof requireAdmin>[1])
   return null
 }
 

@@ -18,7 +18,9 @@ binding = "UPLOADS"
 bucket_name = "cpl-uploads"
 
 [vars]
-ADMIN_PASSWORD = "cpl-admin-2026"
+# TODO: Move to wrangler secret — run: wrangler secret put ADMIN_PASSWORD
+# This placeholder is overridden by the secret in production
+ADMIN_PASSWORD = "CHANGE_ME_USE_WRANGLER_SECRET"
 
 # Custom domain configuration
 [[routes]]

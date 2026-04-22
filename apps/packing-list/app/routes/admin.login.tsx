@@ -18,9 +18,9 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   // If already authenticated, redirect to admin dashboard
-  if (isAuthenticated(request)) {
+  if (await isAuthenticated(request, context as Parameters<typeof isAuthenticated>[1])) {
     return redirect('/admin')
   }
   return null
@@ -34,7 +34,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return { error: 'Password is required' }
   }
 
-  const isValid = verifyPassword(
+  const isValid = await verifyPassword(
     context as Parameters<typeof verifyPassword>[0],
     password
   )
@@ -44,7 +44,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Create session cookie and redirect
-  const cookieValue = createAuthCookie()
+  const cookieValue = await createAuthCookie(context as Parameters<typeof createAuthCookie>[0])
   return redirect('/admin', {
     headers: {
       'Set-Cookie': buildSetCookieHeader(cookieValue),
