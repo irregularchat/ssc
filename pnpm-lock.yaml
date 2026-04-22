@@ -161,9 +161,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      isbot:
-        specifier: ^5.1.0
-        version: 5.1.39
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.2.5)
@@ -181,7 +178,7 @@ importers:
         specifier: ^7.1.0
         version: 7.14.2(jiti@2.6.1)(lightningcss@1.32.0)(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)(vite@6.4.2(jiti@2.6.1)(lightningcss@1.32.0))(wrangler@4.84.1(@cloudflare/workers-types@4.20260422.1))
       '@react-router/node':
-        specifier: ^7.14.2
+        specifier: ^7.1.0
         version: 7.14.2(react-router@7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
       '@ssc/config':
         specifier: workspace:*

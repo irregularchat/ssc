@@ -27,6 +27,6 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 echo "${YELLOW}Deploying to Cloudflare Pages...${NC}"
-npx wrangler pages deploy build/client --project-name=speech-memorization
+npx wrangler pages deploy build/client --project-name=speech-memorization --commit-dirty=true
 
 echo "${GREEN}Deploy complete!${NC}"
