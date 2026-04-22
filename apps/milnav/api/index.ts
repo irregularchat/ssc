@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { SSC_DEV_ORIGINS } from '@ssc/cloudflare-utils'
 import type { Bindings } from './types'
 import installationsRouter from './routes/installations'
 import buildingsRouter from './routes/buildings'
@@ -9,7 +10,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // CORS
 app.use('/api/*', cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: [...SSC_DEV_ORIGINS],
   credentials: true,
 }))
 

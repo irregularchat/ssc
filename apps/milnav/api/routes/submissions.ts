@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Bindings } from '../types'
+import { queryAll, queryFirst, execute } from '@ssc/cloudflare-utils'
 
 const app = new Hono<{ Bindings: Bindings }>()
 
@@ -18,19 +19,17 @@ app.post('/', async (c) => {
   }
 
   // Verify installation exists
-  const installation = await c.env.DB.prepare(
-    'SELECT id FROM installations WHERE id = ?'
-  ).bind(installation_id).first()
+  const installation = await queryFirst(c.env.DB, 'SELECT id FROM installations WHERE id = ?', [installation_id])
   if (!installation) {
     return c.json({ error: 'Installation not found' }, 404)
   }
 
   const id = crypto.randomUUID()
 
-  await c.env.DB.prepare(`
+  await execute(c.env.DB, `
     INSERT INTO submissions (id, installation_id, building_number, name, description, latitude, longitude, category, submitted_by, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-  `).bind(
+  `, [
     id,
     installation_id,
     building_number,
@@ -40,7 +39,7 @@ app.post('/', async (c) => {
     longitude,
     body.category || null,
     body.submitted_by || null,
-  ).run()
+  ])
 
   return c.json({ data: { id, status: 'pending' }, message: 'Submission received — it will be reviewed before going live.' }, 201)
 })
@@ -48,10 +47,8 @@ app.post('/', async (c) => {
 // GET /api/submissions — List submissions (admin)
 app.get('/', async (c) => {
   const status = c.req.query('status') || 'pending'
-  const results = await c.env.DB.prepare(
-    'SELECT * FROM submissions WHERE status = ? ORDER BY created_at DESC LIMIT 100'
-  ).bind(status).all()
-  return c.json({ data: results.results })
+  const data = await queryAll(c.env.DB, 'SELECT * FROM submissions WHERE status = ? ORDER BY created_at DESC LIMIT 100', [status])
+  return c.json({ data })
 })
 
 // PUT /api/submissions/:id — Approve or reject (admin)
@@ -64,28 +61,26 @@ app.put('/:id', async (c) => {
     return c.json({ error: 'status must be "approved" or "rejected"' }, 400)
   }
 
-  const submission = await c.env.DB.prepare(
-    'SELECT * FROM submissions WHERE id = ?'
-  ).bind(id).first<{
+  const submission = await queryFirst<{
     id: string; installation_id: string; building_number: string; name: string | null;
     description: string | null; latitude: number; longitude: number; category: string | null;
-  }>()
+  }>(c.env.DB, 'SELECT * FROM submissions WHERE id = ?', [id])
 
   if (!submission) return c.json({ error: 'Submission not found' }, 404)
 
   // Update submission status
-  await c.env.DB.prepare(`
+  await execute(c.env.DB, `
     UPDATE submissions SET status = ?, reviewer_notes = ?, reviewed_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).bind(status, reviewer_notes || null, id).run()
+  `, [status, reviewer_notes || null, id])
 
   // If approved, insert into buildings table
   if (status === 'approved') {
     const buildingId = crypto.randomUUID()
-    await c.env.DB.prepare(`
+    await execute(c.env.DB, `
       INSERT OR REPLACE INTO buildings (id, installation_id, building_number, name, description, latitude, longitude, category, verified, source)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 'community')
-    `).bind(
+    `, [
       buildingId,
       submission.installation_id,
       submission.building_number,
@@ -94,7 +89,7 @@ app.put('/:id', async (c) => {
       submission.latitude,
       submission.longitude,
       submission.category,
-    ).run()
+    ])
   }
 
   return c.json({ data: { id, status }, message: `Submission ${status}` })

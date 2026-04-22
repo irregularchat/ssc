@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Bindings } from '../types'
+import { queryFirst, execute } from '@ssc/cloudflare-utils'
 
 const app = new Hono<{ Bindings: Bindings }>()
 
@@ -93,9 +94,7 @@ app.get('/categories', async (c) => {
 // GET /api/buildings/:id — Single building
 app.get('/:id', async (c) => {
   const id = c.req.param('id')
-  const result = await c.env.DB.prepare(
-    'SELECT * FROM buildings WHERE id = ?'
-  ).bind(id).first()
+  const result = await queryFirst(c.env.DB, 'SELECT * FROM buildings WHERE id = ?', [id])
 
   if (!result) return c.json({ error: 'Building not found' }, 404)
   return c.json({ data: result })
@@ -104,9 +103,7 @@ app.get('/:id', async (c) => {
 // GET /api/buildings/:id/w3w — Get what3words address (lazy convert + cache)
 app.get('/:id/w3w', async (c) => {
   const id = c.req.param('id')
-  const building = await c.env.DB.prepare(
-    'SELECT id, building_number, latitude, longitude, w3w_address FROM buildings WHERE id = ?'
-  ).bind(id).first<{ id: string; building_number: string; latitude: number; longitude: number; w3w_address: string | null }>()
+  const building = await queryFirst<{ id: string; building_number: string; latitude: number; longitude: number; w3w_address: string | null }>(c.env.DB, 'SELECT id, building_number, latitude, longitude, w3w_address FROM buildings WHERE id = ?', [id])
 
   if (!building) return c.json({ error: 'Building not found' }, 404)
 
@@ -143,9 +140,7 @@ app.get('/:id/w3w', async (c) => {
     const w3wAddress = data.words
 
     // Cache in D1 so we never call the API for this building again
-    await c.env.DB.prepare(
-      'UPDATE buildings SET w3w_address = ? WHERE id = ?'
-    ).bind(w3wAddress, building.id).run()
+    await execute(c.env.DB, 'UPDATE buildings SET w3w_address = ? WHERE id = ?', [w3wAddress, building.id])
 
     return c.json({
       data: {
@@ -162,9 +157,7 @@ app.get('/:id/w3w', async (c) => {
 // GET /api/buildings/:id/directions — Navigation deep links
 app.get('/:id/directions', async (c) => {
   const id = c.req.param('id')
-  const building = await c.env.DB.prepare(
-    'SELECT building_number, name, latitude, longitude FROM buildings WHERE id = ?'
-  ).bind(id).first<{ building_number: string; name: string | null; latitude: number; longitude: number }>()
+  const building = await queryFirst<{ building_number: string; name: string | null; latitude: number; longitude: number }>(c.env.DB, 'SELECT building_number, name, latitude, longitude FROM buildings WHERE id = ?', [id])
 
   if (!building) return c.json({ error: 'Building not found' }, 404)
 
