@@ -58,12 +58,14 @@ export function TextSelector({
           <input
             type="text"
             placeholder="Title (optional)"
+            aria-label="Speech title"
             value={customTitle}
             onChange={(e) => setCustomTitle(e.target.value)}
             className="w-full bg-bg-muted border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
           />
           <textarea
             placeholder="Paste or type the text you want to memorize..."
+            aria-label="Speech content to memorize"
             value={customContent}
             onChange={(e) => setCustomContent(e.target.value)}
             rows={5}
@@ -84,9 +86,17 @@ export function TextSelector({
             interactive
             className="group"
           >
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               className="w-full text-left"
               onClick={() => onSelect(text)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSelect(text)
+                }
+              }}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-medium text-text-primary group-hover:text-accent-bright transition-colors">
@@ -116,7 +126,7 @@ export function TextSelector({
               <p className="text-xs text-text-muted mt-2">
                 {text.content.split(/\s+/).length} words
               </p>
-            </button>
+            </div>
           </Card>
         ))}
       </div>

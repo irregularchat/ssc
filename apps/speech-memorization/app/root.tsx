@@ -27,7 +27,12 @@ export default function Root() {
         <Links />
       </head>
       <body className="min-h-screen bg-bg text-text-primary antialiased">
-        <Outlet />
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-text-primary focus:text-text-inverse focus:rounded-lg">
+          Skip to content
+        </a>
+        <main id="main-content">
+          <Outlet />
+        </main>
         <ScrollRestoration />
         <Scripts />
       </body>
