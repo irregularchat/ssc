@@ -8,6 +8,7 @@ import { Card } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { EmptyState } from '~/components/ui/empty-state'
 import { getDB, getPackingList, getTipsForList, createTip, voteOnTip } from '~/lib/db.server'
+import { validateLength, validateRequired } from '~/lib/validation'
 import type { PackingList, TipWithVotes, PackingListItemWithItem } from '~/types/database'
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -38,11 +39,14 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     const item_id = formData.get('item_id') ? parseInt(formData.get('item_id') as string) : null
     const contributor_name = (formData.get('contributor_name') as string)?.trim() || null
 
-    if (!title) {
-      return { error: 'Give your tip a short title.' }
-    }
-    if (!body) {
-      return { error: 'Explain why this tip helps.' }
+    const titleError = validateRequired(title, 'Title') || validateLength(title as string, 'title')
+    if (titleError) return { error: titleError }
+
+    const bodyError = validateRequired(body, 'Body') || validateLength(body as string, 'body')
+    if (bodyError) return { error: bodyError }
+
+    if (contributor_name && validateLength(contributor_name, 'contributor')) {
+      return { error: validateLength(contributor_name, 'contributor') }
     }
     if (!['allowed', 'tolerated', 'not_allowed'].includes(compliance_status)) {
       return { error: 'Pick whether this is officially okay or not.' }
@@ -64,7 +68,8 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     const tipId = parseInt(formData.get('tip_id') as string)
     const voteType = formData.get('vote_type') as 'up' | 'down'
     if (!tipId || !voteType) return { error: 'Invalid vote' }
-    await voteOnTip(db, tipId, voteType)
+    const voterIp = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown'
+    await voteOnTip(db, tipId, voteType, voterIp)
     return { success: true }
   }
 

@@ -7,6 +7,7 @@ import { Input } from '~/components/ui/input'
 import { Select } from '~/components/ui/select'
 import { Card } from '~/components/ui/card'
 import { getDB, createPackingList, getSchools, getBases } from '~/lib/db.server'
+import { validateLength, validateRequired } from '~/lib/validation'
 import type { School, Base } from '~/types/database'
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -29,8 +30,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const isPublic = formData.get('is_public') === 'on'
   const contributorName = formData.get('contributor_name') as string | null
 
-  if (!name || name.trim().length === 0) {
-    return { error: 'Name is required' }
+  const nameError = validateRequired(name, 'List name') || validateLength(name as string, 'name')
+  if (nameError) return { error: nameError }
+
+  if (description && validateLength(description, 'description')) {
+    return { error: validateLength(description, 'description') }
   }
 
   const db = getDB(context as Parameters<typeof getDB>[0])

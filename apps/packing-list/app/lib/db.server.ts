@@ -212,8 +212,15 @@ export async function removeItemFromList(
 }
 
 // Items
-export async function getItems(db: D1Database): Promise<Item[]> {
-  const result = await db.prepare('SELECT * FROM items ORDER BY name').all<Item>()
+export async function getItems(db: D1Database, { limit = 100, offset = 0, all = false } = {}): Promise<Item[]> {
+  if (all) {
+    const result = await db.prepare('SELECT * FROM items ORDER BY name').all<Item>()
+    return result.results
+  }
+  const result = await db
+    .prepare('SELECT * FROM items ORDER BY name LIMIT ? OFFSET ?')
+    .bind(limit, offset)
+    .all<Item>()
   return result.results
 }
 
@@ -248,8 +255,15 @@ export async function createItem(
 }
 
 // Stores
-export async function getStores(db: D1Database): Promise<Store[]> {
-  const result = await db.prepare('SELECT * FROM stores ORDER BY name').all<Store>()
+export async function getStores(db: D1Database, { limit = 100, offset = 0, all = false } = {}): Promise<Store[]> {
+  if (all) {
+    const result = await db.prepare('SELECT * FROM stores ORDER BY name').all<Store>()
+    return result.results
+  }
+  const result = await db
+    .prepare('SELECT * FROM stores ORDER BY name LIMIT ? OFFSET ?')
+    .bind(limit, offset)
+    .all<Store>()
   return result.results
 }
 
@@ -491,7 +505,7 @@ export async function voteOnPrice(
 ): Promise<void> {
   await db
     .prepare(`
-      INSERT INTO votes (price_id, vote_type, voter_ip)
+      INSERT OR IGNORE INTO votes (price_id, vote_type, voter_ip)
       VALUES (?, ?, ?)
     `)
     .bind(priceId, voteType, voterIp)
@@ -499,8 +513,15 @@ export async function voteOnPrice(
 }
 
 // Schools & Bases
-export async function getSchools(db: D1Database): Promise<School[]> {
-  const result = await db.prepare('SELECT * FROM schools ORDER BY name').all<School>()
+export async function getSchools(db: D1Database, { limit = 100, offset = 0, all = false } = {}): Promise<School[]> {
+  if (all) {
+    const result = await db.prepare('SELECT * FROM schools ORDER BY name').all<School>()
+    return result.results
+  }
+  const result = await db
+    .prepare('SELECT * FROM schools ORDER BY name LIMIT ? OFFSET ?')
+    .bind(limit, offset)
+    .all<School>()
   return result.results
 }
 
@@ -3449,7 +3470,7 @@ export async function voteOnTip(
   voterIp?: string | null
 ): Promise<void> {
   await db.prepare(`
-    INSERT INTO tip_votes (tip_id, vote_type, voter_ip)
+    INSERT OR IGNORE INTO tip_votes (tip_id, vote_type, voter_ip)
     VALUES (?, ?, ?)
   `).bind(tipId, voteType, voterIp ?? null).run()
 }

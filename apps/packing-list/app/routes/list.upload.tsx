@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Card } from '~/components/ui/card'
 import { getDB, createPackingList, createItem, addItemToList } from '~/lib/db.server'
+import { validateLength, validateRequired } from '~/lib/validation'
 
 interface ParsedItem {
   name: string
@@ -76,9 +77,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const listName = formData.get('list_name') as string
   const csvContent = formData.get('csv_content') as string
 
-  if (!listName || listName.trim().length === 0) {
-    return { error: 'List name is required' }
-  }
+  const nameError = validateRequired(listName, 'List name') || validateLength(listName as string, 'name')
+  if (nameError) return { error: nameError }
 
   if (!csvContent || csvContent.trim().length === 0) {
     return { error: 'CSV content is required' }
@@ -88,6 +88,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (items.length === 0) {
     return { error: 'No valid items found in CSV. Make sure you have a header row with "name" column.' }
+  }
+
+  if (items.length > 1000) {
+    return { error: 'CSV uploads are limited to 1000 rows. Please split your file into smaller batches.' }
   }
 
   const db = getDB(context as Parameters<typeof getDB>[0])

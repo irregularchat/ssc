@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import { Select } from '~/components/ui/select'
 import { Card } from '~/components/ui/card'
 import { getDB, getItem, getStores, createPrice } from '~/lib/db.server'
+import { validateLength } from '~/lib/validation'
 import type { Item, Store } from '~/types/database'
 
 // Common package sizes for quick selection
@@ -53,6 +54,10 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   const price = parseFloat(priceStr)
   if (isNaN(price) || price <= 0) {
     return { error: 'Please enter a valid price' }
+  }
+
+  if (packageName && validateLength(packageName, 'name')) {
+    return { error: validateLength(packageName, 'name') }
   }
 
   const packageQty = packageQtyStr ? parseInt(packageQtyStr) : 1

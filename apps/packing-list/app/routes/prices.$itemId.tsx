@@ -18,8 +18,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return { error: 'Invalid vote' }
   }
 
+  const voterIp = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown'
   const db = getDB(context as Parameters<typeof getDB>[0])
-  await voteOnPrice(db, priceId, voteType)
+  await voteOnPrice(db, priceId, voteType, voterIp)
 
   return { success: true }
 }
