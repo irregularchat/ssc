@@ -20,8 +20,13 @@ pnpm dev                          # All apps dev servers
 pnpm dev --filter=milnav          # milnav only
 pnpm dev --filter=@cpl/web        # packing-list only
 pnpm build                        # Build all (cached)
-pnpm deploy:milnav                # Deploy milnav
-pnpm deploy:packing-list          # Deploy packing-list
+pnpm deploy:milnav                # Deploy milnav (API + Web)
+pnpm deploy:packing-list          # Deploy packing-list (build + migrate + deploy)
+pnpm deploy:all                   # Deploy everything
+./deploy.sh milnav --api          # Deploy milnav API Worker only
+./deploy.sh milnav --web          # Deploy milnav Web frontend only
+./deploy.sh packing-list --dry-run  # Build and verify without deploying
+./deploy.sh packing-list --migrate-only  # Run D1 migrations only
 ```
 
 ## Conventions
