@@ -1,0 +1,19 @@
+{
+  "name": "ssc",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
+    "deploy:milnav": "turbo deploy --filter=milnav",
+    "deploy:packing-list": "turbo deploy --filter=@cpl/web"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
