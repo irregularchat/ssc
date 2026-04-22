@@ -57,8 +57,9 @@ export default function Practice() {
   }
 
   function handleStart(mode: PracticeMode) {
+    if (!text) return
     setSelectedMode(mode)
-    startSession(text!.content, mode)
+    startSession(text.content, mode)
   }
 
   function handleReset() {
@@ -74,7 +75,7 @@ export default function Practice() {
     <div className="max-w-2xl mx-auto px-4 py-6 sm:py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+        <Button variant="ghost" size="icon" aria-label="Back to text selection" onClick={() => navigate('/')}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1 min-w-0">

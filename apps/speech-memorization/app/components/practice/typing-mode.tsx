@@ -28,7 +28,7 @@ export function TypingMode({
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Tab') {
+    if (e.key === 'Escape') {
       e.preventDefault()
       onSkip()
       setValue('')
@@ -58,7 +58,7 @@ export function TypingMode({
       </form>
 
       <div className="flex items-center justify-between text-xs text-text-muted">
-        <span>Press Enter to submit, Tab to skip</span>
+        <span>Press Enter to submit, Escape to skip</span>
         <Button
           variant="ghost"
           size="sm"

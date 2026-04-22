@@ -46,6 +46,13 @@ export function WordDisplay({
           {w.word}{' '}
         </span>
       ))}
+      {/* Screen reader announcement for current word */}
+      <span className="sr-only" aria-live="polite">
+        {(() => {
+          const current = words.find(w => w.status === 'current')
+          return current ? `Current word: ${current.word}` : 'All words complete'
+        })()}
+      </span>
     </div>
   )
 }

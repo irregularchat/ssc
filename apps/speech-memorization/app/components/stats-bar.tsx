@@ -27,7 +27,14 @@ export function StatsBar({
   return (
     <div className={clsx('space-y-3', className)}>
       {/* Progress bar */}
-      <div className="w-full bg-bg-muted rounded-full h-2 overflow-hidden">
+      <div
+        role="progressbar"
+        aria-valuenow={Math.round(progress)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Practice progress"
+        className="w-full bg-bg-muted rounded-full h-2 overflow-hidden"
+      >
         <div
           className="bg-accent h-full rounded-full transition-all duration-300"
           style={{ width: `${progress}%` }}
