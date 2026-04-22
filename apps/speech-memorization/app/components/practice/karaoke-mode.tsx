@@ -31,12 +31,8 @@ export function KaraokeMode({
 
   const startPlayback = useCallback(() => {
     if (!isActive) return
-    stopPlayback()
     setIsPlaying(true)
-    intervalRef.current = setInterval(() => {
-      onAdvanceRef.current()
-    }, msPerWord)
-  }, [isActive, msPerWord, stopPlayback])
+  }, [isActive])
 
   // Stop when session ends
   useEffect(() => {

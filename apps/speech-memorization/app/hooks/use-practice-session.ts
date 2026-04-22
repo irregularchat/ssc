@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { saveSession, type SessionRecord } from '~/lib/storage'
 
 export type PracticeMode = 'speech' | 'typing' | 'karaoke'
@@ -233,6 +233,12 @@ export function usePracticeSession(textId: string, textTitle: string) {
       correctCount: 0,
       elapsedMs: 0,
     })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
   }, [])
 
   const accuracy =
