@@ -19,6 +19,7 @@ import {
 import { formatPrice } from '~/lib/format'
 import type { ItemSearchResult } from '~/lib/db.server'
 import { validateOrigin } from '~/lib/csrf.server'
+import { validateLength, validateRequired } from '~/lib/validation'
 import type { PackingListWithRelations } from '~/types/database'
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -73,8 +74,15 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     const quantity = parseInt(formData.get('quantity') as string) || 1
     const notes = formData.get('notes') as string | null
 
-    if (!name || name.trim().length === 0) {
-      return { error: 'Item name is required' }
+    const nameError = validateRequired(name, 'Item name') || validateLength(name, 'name')
+    if (nameError) return { error: nameError }
+    if (description) {
+      const descError = validateLength(description, 'description')
+      if (descError) return { error: descError }
+    }
+    if (notes) {
+      const notesError = validateLength(notes, 'notes')
+      if (notesError) return { error: notesError }
     }
 
     // Check for duplicates

@@ -1,18 +1,9 @@
 {
+  "extends": "@ssc/config/tsconfig.worker",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "noEmit": true,
-    "lib": ["ES2022"],
-    "types": ["@cloudflare/workers-types"],
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*"],
+  "include": ["api/**/*"],
   "exclude": ["node_modules", "dist", "web"]
 }

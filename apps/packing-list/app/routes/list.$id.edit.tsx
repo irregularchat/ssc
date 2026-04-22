@@ -7,6 +7,8 @@ import { Input } from '~/components/ui/input'
 import { Select } from '~/components/ui/select'
 import { Card } from '~/components/ui/card'
 import { getDB, getPackingList, updatePackingList, getSchools, getBases } from '~/lib/db.server'
+import { validateOrigin } from '~/lib/csrf.server'
+import { validateLength, validateRequired } from '~/lib/validation'
 import type { PackingListWithRelations, School, Base } from '~/types/database'
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -26,6 +28,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) return new Response(originError, { status: 403 })
+
   const formData = await request.formData()
   const db = getDB(context as Parameters<typeof getDB>[0])
   const listId = parseInt(params.id!)
@@ -38,8 +43,15 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   const isPublic = formData.get('is_public') === 'on'
   const contributorName = formData.get('contributor_name') as string | null
 
-  if (!name || name.trim().length === 0) {
-    return { error: 'Name is required' }
+  const nameError = validateRequired(name, 'Name') || validateLength(name, 'name')
+  if (nameError) return { error: nameError }
+  if (description) {
+    const descError = validateLength(description, 'description')
+    if (descError) return { error: descError }
+  }
+  if (contributorName) {
+    const contribError = validateLength(contributorName, 'contributor')
+    if (contribError) return { error: contribError }
   }
 
   await updatePackingList(db, listId, {

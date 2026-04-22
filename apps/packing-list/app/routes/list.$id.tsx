@@ -7,6 +7,7 @@ import { Badge } from '~/components/ui/badge'
 import { Card } from '~/components/ui/card'
 import { EmptyState } from '~/components/ui/empty-state'
 import { getDB, getPackingList, deletePackingList, removeItemFromList, getTipCountForList } from '~/lib/db.server'
+import { validateOrigin } from '~/lib/csrf.server'
 import type { PackingListWithRelations } from '~/types/database'
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -25,6 +26,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) return new Response(originError, { status: 403 })
+
   const formData = await request.formData()
   const intent = formData.get('intent')
 

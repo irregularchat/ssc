@@ -29,4 +29,14 @@ fi
 echo "${YELLOW}Deploying to Cloudflare Pages...${NC}"
 npx wrangler pages deploy build/client --project-name=speech-memorization --commit-dirty=true
 
+# Verify deployment
+echo "${YELLOW}Verifying...${NC}"
+sleep 3
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://speech-memorization.pages.dev" 2>/dev/null || echo "000")
+if [ "$STATUS" = "200" ]; then
+    echo "${GREEN}✓ https://speech-memorization.pages.dev → HTTP $STATUS${NC}"
+else
+    echo "${RED}✗ https://speech-memorization.pages.dev → HTTP $STATUS (may need a moment)${NC}"
+fi
+
 echo "${GREEN}Deploy complete!${NC}"
