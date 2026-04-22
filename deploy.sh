@@ -46,6 +46,13 @@ case "$APP" in
         cd apps/milnav
         ./deploy.sh "$@"
         ;;
+    speech-memorization|speech)
+        echo "${BLUE}═══════════════════════════════════${NC}"
+        echo "${BLUE}  Deploying: Speech Memorization${NC}"
+        echo "${BLUE}═══════════════════════════════════${NC}"
+        cd apps/speech-memorization
+        ./deploy.sh "$@"
+        ;;
     packing-list|cpl)
         echo "${BLUE}═══════════════════════════════════${NC}"
         echo "${BLUE}  Deploying: Community Packing List${NC}"
@@ -61,6 +68,12 @@ case "$APP" in
 
         echo "${BLUE}── MilNav ──────────────────────────${NC}"
         cd apps/milnav
+        ./deploy.sh "$@"
+        cd "$SCRIPT_DIR"
+
+        echo ""
+        echo "${BLUE}── Speech Memorization ─────────────${NC}"
+        cd apps/speech-memorization
         ./deploy.sh "$@"
         cd "$SCRIPT_DIR"
 

@@ -50,6 +50,12 @@ pnpm deploy:all                   # Deploy everything
 - **Storage:** R2 `cpl-uploads`
 - **Deploy:** `cd apps/packing-list && ./deploy.sh`
 
+### speech-memorization
+- **App:** React 19 + React Router 7 static SPA on Cloudflare Pages (`apps/speech-memorization/`)
+- **Database:** None (localStorage only)
+- **Deploy:** `cd apps/speech-memorization && ./deploy.sh`
+- **Modes:** Speech recognition (Web Speech API), typing, karaoke read-along
+
 ## Database
 
 ### milnav D1 Migrations

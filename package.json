@@ -9,6 +9,7 @@
     "deploy": "./deploy.sh",
     "deploy:milnav": "./deploy.sh milnav",
     "deploy:packing-list": "./deploy.sh packing-list",
+    "deploy:speech-memorization": "./deploy.sh speech-memorization",
     "deploy:all": "./deploy.sh all"
   },
   "devDependencies": {
