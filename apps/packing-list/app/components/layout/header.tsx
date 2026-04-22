@@ -52,6 +52,7 @@ export function Header() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label={selectedBase ? `Location: ${selectedBase.name}. Click to change` : 'Select location'}
                 className={`
                   flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm
                   transition-colors duration-150 border
@@ -137,6 +138,7 @@ export function Header() {
                 <Link
                   key={link.path}
                   to={link.path}
+                  aria-label={link.label}
                   className={`
                     flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
                     transition-colors duration-150

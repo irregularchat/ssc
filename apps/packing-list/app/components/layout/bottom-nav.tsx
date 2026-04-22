@@ -25,6 +25,7 @@ export function BottomNav() {
                 <Link
                   key={item.path}
                   to={item.path}
+                  aria-label="Create new packing list"
                   className="flex flex-col items-center justify-center"
                 >
                   <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-text-primary transition-transform active:scale-95">
@@ -38,6 +39,7 @@ export function BottomNav() {
               <Link
                 key={item.path}
                 to={item.path}
+                aria-label={item.label}
                 className={`
                   flex flex-col items-center justify-center flex-1 h-full
                   transition-colors duration-150

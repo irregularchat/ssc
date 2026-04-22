@@ -1,5 +1,5 @@
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from 'react-router'
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, isRouteErrorResponse, useRouteError, Link } from 'react-router'
 import stylesheet from './app.css?url'
 import { LocationProvider, getLocationFromCookie } from '~/lib/location'
 import { getDB, getBases } from '~/lib/db.server'
@@ -21,6 +21,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const selectedBaseId = getLocationFromCookie(cookieHeader)
 
   return { bases, selectedBaseId }
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+  const is404 = isRouteErrorResponse(error) && error.status === 404
+
+  return (
+    <html lang="en" className="dark">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{is404 ? 'Page Not Found' : 'Something Went Wrong'} — CPL</title>
+        <Meta />
+        <Links />
+      </head>
+      <body className="min-h-screen bg-bg text-text-primary antialiased flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-8">
+          <div className="text-6xl mb-4">{is404 ? '404' : '500'}</div>
+          <h1 className="text-xl font-semibold mb-2">
+            {is404 ? 'Page Not Found' : 'Something Went Wrong'}
+          </h1>
+          <p className="text-text-muted mb-6">
+            {is404
+              ? "The page you're looking for doesn't exist or has been moved."
+              : 'An unexpected error occurred. Please try again.'}
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center h-10 px-6 rounded-lg bg-text-primary text-text-inverse font-medium hover:bg-white/90 transition-colors"
+          >
+            Go Home
+          </Link>
+        </div>
+        <Scripts />
+      </body>
+    </html>
+  )
 }
 
 export default function App() {
