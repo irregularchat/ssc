@@ -1,0 +1,8 @@
+{
+  "extends": "@ssc/config/tsconfig.worker",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
