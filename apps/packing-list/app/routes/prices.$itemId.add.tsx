@@ -7,6 +7,7 @@ import { Select } from '~/components/ui/select'
 import { Card } from '~/components/ui/card'
 import { getDB, getItem, getStores, createPrice } from '~/lib/db.server'
 import { validateLength } from '~/lib/validation'
+import { validateOrigin } from '~/lib/csrf.server'
 import type { Item, Store } from '~/types/database'
 
 // Common package sizes for quick selection
@@ -33,6 +34,11 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
   const db = getDB(context as Parameters<typeof getDB>[0])
   const itemId = parseInt(params.itemId!)

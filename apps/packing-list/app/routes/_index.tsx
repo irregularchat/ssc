@@ -17,6 +17,7 @@ import {
   createItem,
   searchItems,
 } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 import type { ItemSearchResult } from '~/lib/db.server'
 import { getLocationFromCookie } from '~/lib/location'
 import { useLocation } from '~/lib/location'
@@ -139,7 +140,7 @@ function SearchResultCard({ item, index }: { item: ItemSearchResult; index: numb
                 </span>
                 {item.best_price !== null && (
                   <Badge variant="success" size="sm">
-                    ${item.best_price.toFixed(2)}
+                    {formatPrice(item.best_price)}
                   </Badge>
                 )}
                 {item.price_count === 0 && (

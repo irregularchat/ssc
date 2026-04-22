@@ -16,7 +16,9 @@ import {
   getDistinctCategories,
   findDuplicateItems,
 } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 import type { ItemSearchResult } from '~/lib/db.server'
+import { validateOrigin } from '~/lib/csrf.server'
 import type { PackingListWithRelations } from '~/types/database'
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -44,6 +46,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
   const intent = formData.get('intent')
   const db = getDB(context as Parameters<typeof getDB>[0])
@@ -195,7 +202,7 @@ export default function AddItemPage() {
                             On {item.list_count} list{item.list_count !== 1 ? 's' : ''}
                           </span>
                           {item.best_price !== null && (
-                            <span className="text-xs text-success">${item.best_price.toFixed(2)}</span>
+                            <span className="text-xs text-success">{formatPrice(item.best_price)}</span>
                           )}
                         </div>
                       </div>

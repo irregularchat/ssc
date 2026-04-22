@@ -29,6 +29,7 @@ import {
   bulkVerifyPrices,
   bulkDeletePrices,
 } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 import type { PriceFilters } from '~/lib/db.server'
 
 export const meta: MetaFunction = () => {
@@ -123,13 +124,6 @@ function formatRelativeDate(dateStr: string): string {
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
   return `${Math.floor(diffDays / 365)} years ago`
-}
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
 }
 
 export default function AdminPricesListPage() {

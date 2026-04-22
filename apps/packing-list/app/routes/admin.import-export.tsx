@@ -224,18 +224,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const itemId = parseInt(row.item_id, 10)
       const storeId = parseInt(row.store_id, 10)
-      const price = parseFloat(row.price)
+      const priceDollars = parseFloat(row.price)
 
-      if (isNaN(itemId) || isNaN(storeId) || isNaN(price)) {
+      if (isNaN(itemId) || isNaN(storeId) || isNaN(priceDollars)) {
         result.errors.push(`Line ${i + 1}: Invalid item_id, store_id, or price`)
         continue
       }
+
+      // Convert dollars to cents for storage
+      const priceInCents = Math.round(priceDollars * 100)
 
       try {
         await createPrice(db, {
           itemId,
           storeId,
-          price,
+          price: priceInCents,
           source: row.source?.trim() || 'import',
           reportedBy: row.reported_by?.trim() || 'Admin Import',
         })
@@ -300,7 +303,7 @@ export default function AdminImportExportPage() {
     } else if (type === 'prices') {
       csvContent = 'id,item_id,item_name,store_id,store_name,price,date_recorded,source\n'
       prices.forEach((price: any) => {
-        csvContent += `${price.id},${price.item_id},"${escapeCSV(price.item_name)}",${price.store_id},"${escapeCSV(price.store_name)}",${price.price},"${price.date_recorded}","${escapeCSV(price.source || '')}"\n`
+        csvContent += `${price.id},${price.item_id},"${escapeCSV(price.item_name)}",${price.store_id},"${escapeCSV(price.store_name)}",${(price.price / 100).toFixed(2)},"${price.date_recorded}","${escapeCSV(price.source || '')}"\n`
       })
       filename = `prices-export-${new Date().toISOString().split('T')[0]}.csv`
     }

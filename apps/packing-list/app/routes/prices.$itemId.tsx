@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router'
-import { Link, useLoaderData, useFetcher } from 'react-router'
+import { Link, useLoaderData, useFetcher, isRouteErrorResponse, useRouteError } from 'react-router'
 import { ArrowLeft, DollarSign, MapPin, ThumbsUp, ThumbsDown, CheckCircle, XCircle, Plus } from 'lucide-react'
 import { Layout } from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -7,9 +7,16 @@ import { Card } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { EmptyState } from '~/components/ui/empty-state'
 import { getDB, getItemPrices, voteOnPrice } from '~/lib/db.server'
+import { validateOrigin } from '~/lib/csrf.server'
+import { formatPrice } from '~/lib/format'
 import type { PriceWithStore, Item } from '~/types/database'
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
   const priceId = parseInt(formData.get('price_id') as string)
   const voteType = formData.get('vote_type') as 'up' | 'down'
@@ -184,7 +191,7 @@ export default function PricesPage() {
 
                   <div className="text-right">
                     <p className="text-2xl font-semibold text-text-primary">
-                      ${(price.price / 100).toFixed(2)}
+                      {formatPrice(price.price)}
                     </p>
                     {price.last_verified && (
                       <p className="text-xs text-text-muted">
@@ -213,5 +220,28 @@ export default function PricesPage() {
         )}
       </div>
     </Layout>
+  )
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+  const is404 = isRouteErrorResponse(error) && error.status === 404
+
+  return (
+    <div className="max-w-md mx-auto text-center py-16 px-4">
+      <div className="text-5xl font-bold text-text-muted mb-4">{is404 ? '404' : 'Error'}</div>
+      <h1 className="text-lg font-semibold text-text-primary mb-2">
+        {is404 ? 'Not Found' : 'Something went wrong'}
+      </h1>
+      <p className="text-text-muted text-sm mb-6">
+        {is404 ? "This page doesn't exist or has been removed." : 'Please try again.'}
+      </p>
+      <Link
+        to="/"
+        className="inline-flex items-center justify-center h-10 px-6 rounded-lg bg-text-primary text-text-inverse font-medium hover:bg-white/90 transition-colors"
+      >
+        Go Home
+      </Link>
+    </div>
   )
 }

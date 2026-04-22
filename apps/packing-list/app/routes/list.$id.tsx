@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router'
-import { Link, useLoaderData, useActionData, useNavigate } from 'react-router'
+import { Link, useLoaderData, useActionData, useNavigate, isRouteErrorResponse, useRouteError } from 'react-router'
 import { ArrowLeft, Plus, Trash2, Package, ExternalLink, Pencil, X, ShoppingCart, Lightbulb } from 'lucide-react'
 import { Layout } from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -208,5 +208,28 @@ export default function ListDetailPage() {
         )}
       </div>
     </Layout>
+  )
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+  const is404 = isRouteErrorResponse(error) && error.status === 404
+
+  return (
+    <div className="max-w-md mx-auto text-center py-16 px-4">
+      <div className="text-5xl font-bold text-text-muted mb-4">{is404 ? '404' : 'Error'}</div>
+      <h1 className="text-lg font-semibold text-text-primary mb-2">
+        {is404 ? 'Not Found' : 'Something went wrong'}
+      </h1>
+      <p className="text-text-muted text-sm mb-6">
+        {is404 ? "This page doesn't exist or has been removed." : 'Please try again.'}
+      </p>
+      <Link
+        to="/"
+        className="inline-flex items-center justify-center h-10 px-6 rounded-lg bg-text-primary text-text-inverse font-medium hover:bg-white/90 transition-colors"
+      >
+        Go Home
+      </Link>
+    </div>
   )
 }

@@ -6,6 +6,7 @@ import { Layout } from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import { EmptyState } from '~/components/ui/empty-state'
 import { getDB, getPackingList, getShoppingComparisonV2, getBasesWithStoreCount } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 import { getLocationFromCookie } from '~/lib/location'
 import { useLocation } from '~/lib/location'
 import type { PackingListWithRelations, Base } from '~/types/database'
@@ -54,10 +55,6 @@ export const meta: MetaFunction = ({ data }) => {
   return [
     { title: typedData?.list ? `Prices - ${typedData.list.name}` : 'Price Comparison' },
   ]
-}
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
 }
 
 // Calculate packages needed and total cost

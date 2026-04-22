@@ -8,6 +8,7 @@ import { Select } from '~/components/ui/select'
 import { Card } from '~/components/ui/card'
 import { getDB, createPackingList, getSchools, getBases } from '~/lib/db.server'
 import { validateLength, validateRequired } from '~/lib/validation'
+import { validateOrigin } from '~/lib/csrf.server'
 import type { School, Base } from '~/types/database'
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -20,6 +21,11 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
 
   const name = formData.get('name') as string

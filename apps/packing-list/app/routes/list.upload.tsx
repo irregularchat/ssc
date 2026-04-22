@@ -7,6 +7,7 @@ import { Input } from '~/components/ui/input'
 import { Card } from '~/components/ui/card'
 import { getDB, createPackingList, createItem, addItemToList } from '~/lib/db.server'
 import { validateLength, validateRequired } from '~/lib/validation'
+import { validateOrigin } from '~/lib/csrf.server'
 
 interface ParsedItem {
   name: string
@@ -73,6 +74,11 @@ function parseCSV(content: string): ParsedItem[] {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
   const listName = formData.get('list_name') as string
   const csvContent = formData.get('csv_content') as string

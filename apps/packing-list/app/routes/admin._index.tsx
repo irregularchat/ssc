@@ -28,6 +28,7 @@ import {
   getRecentPrices,
   getLowVotePrices,
 } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Admin - CPL' }]
@@ -115,10 +116,6 @@ const statCards = [
     href: '/admin/stores?militaryDiscount=true',
   },
 ]
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
-}
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)

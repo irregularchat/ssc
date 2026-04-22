@@ -27,6 +27,7 @@ import {
   deletePrice,
   getVotesForPrice,
 } from '~/lib/db.server'
+import { formatPrice } from '~/lib/format'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const itemName = data?.price?.item_name || 'Price'
@@ -101,9 +102,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     return { success: false, errors }
   }
 
+  // Convert dollars to cents for storage
+  const priceInCents = Math.round(priceNum * 100)
+
   try {
     await updatePrice(db, id, {
-      price: priceNum,
+      price: priceInCents,
       in_stock: inStock ? 1 : 0,
       package_qty: packageQtyNum,
       package_name: packageName?.trim() || null,
@@ -117,13 +121,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     console.error('Failed to update price:', error)
     return { success: false, errors: { _form: 'Failed to update price. Please try again.' } }
   }
-}
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
 }
 
 function formatRelativeDate(dateStr: string): string {
@@ -326,7 +323,7 @@ export default function AdminPricesEditPage() {
                   min="0"
                   placeholder="0.00"
                   required
-                  defaultValue={price.price.toString()}
+                  defaultValue={(price.price / 100).toFixed(2)}
                   error={errors.price}
                 />
 

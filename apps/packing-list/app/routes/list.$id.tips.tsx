@@ -9,6 +9,7 @@ import { Badge } from '~/components/ui/badge'
 import { EmptyState } from '~/components/ui/empty-state'
 import { getDB, getPackingList, getTipsForList, createTip, voteOnTip } from '~/lib/db.server'
 import { validateLength, validateRequired } from '~/lib/validation'
+import { validateOrigin } from '~/lib/csrf.server'
 import type { PackingList, TipWithVotes, PackingListItemWithItem } from '~/types/database'
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -28,6 +29,11 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
+  const originError = validateOrigin(request)
+  if (originError) {
+    return new Response(originError, { status: 403 })
+  }
+
   const formData = await request.formData()
   const intent = formData.get('intent')
   const db = getDB(context as Parameters<typeof getDB>[0])
