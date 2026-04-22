@@ -124,11 +124,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           image_url: row.image_url?.trim() || null,
         })
         result.imported++
-      } catch (error: any) {
-        if (error.message?.includes('UNIQUE constraint failed')) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error)
+        if (msg.includes('UNIQUE constraint failed')) {
           result.skipped++
         } else {
-          result.errors.push(`Line ${i + 1}: ${error.message || 'Unknown error'}`)
+          result.errors.push(`Line ${i + 1}: ${msg}`)
         }
       }
     }
@@ -182,11 +183,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           base_id: row.base_id ? parseInt(row.base_id, 10) : null,
         })
         result.imported++
-      } catch (error: any) {
-        if (error.message?.includes('UNIQUE constraint failed')) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error)
+        if (msg.includes('UNIQUE constraint failed')) {
           result.skipped++
         } else {
-          result.errors.push(`Line ${i + 1}: ${error.message || 'Unknown error'}`)
+          result.errors.push(`Line ${i + 1}: ${msg}`)
         }
       }
     }
@@ -243,7 +245,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           reportedBy: row.reported_by?.trim() || 'Admin Import',
         })
         result.imported++
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        void err; // use err below
         result.errors.push(`Line ${i + 1}: ${error.message || 'Unknown error'}`)
       }
     }
@@ -302,7 +306,7 @@ export default function AdminImportExportPage() {
       filename = `stores-export-${new Date().toISOString().split('T')[0]}.csv`
     } else if (type === 'prices') {
       csvContent = 'id,item_id,item_name,store_id,store_name,price,date_recorded,source\n'
-      prices.forEach((price: any) => {
+      prices.forEach((price: { id: number; item_id: number; item_name: string; store_id: number; store_name: string; price: number; date_recorded: string; source: string | null }) => {
         csvContent += `${price.id},${price.item_id},"${escapeCSV(price.item_name)}",${price.store_id},"${escapeCSV(price.store_name)}",${(price.price / 100).toFixed(2)},"${price.date_recorded}","${escapeCSV(price.source || '')}"\n`
       })
       filename = `prices-export-${new Date().toISOString().split('T')[0]}.csv`

@@ -46,7 +46,8 @@ import {
   getChildLists,
   getSchoolBases,
 } from '~/lib/db.server'
-import type { School, Base, Item } from '~/types/database'
+import type { School, Base, Item, PackingList } from '~/types/database'
+import type { SchoolBaseRow } from '~/lib/db.server'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const listName = data?.list?.name || 'List'
@@ -98,7 +99,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   }
 
   // Fetch school bases if school is selected
-  let schoolBases: any[] = []
+  let schoolBases: SchoolBaseRow[] = []
   if (list.school_id) {
     schoolBases = await getSchoolBases(db, list.school_id)
   }
@@ -456,7 +457,7 @@ export default function AdminListEditPage() {
                     Location Variants ({childLists.length}):
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {childLists.map((child: any) => (
+                    {childLists.map((child: PackingList & { base_name?: string }) => (
                       <Link key={child.id} to={`/admin/lists/${child.id}`}>
                         <Badge variant="secondary" size="sm" className="hover:bg-accent/20">
                           {child.base_name || child.name}

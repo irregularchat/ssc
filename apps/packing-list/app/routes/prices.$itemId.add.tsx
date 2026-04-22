@@ -121,7 +121,7 @@ export default function AddPricePage() {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-bg-elevated border border-border flex items-center justify-center">
               {item.image_url ? (
-                <img src={item.image_url} alt="" className="w-10 h-10 object-contain" />
+                <img src={item.image_url} alt={item.name} className="w-10 h-10 object-contain" />
               ) : (
                 <Package size={20} className="text-text-muted" />
               )}

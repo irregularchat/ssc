@@ -17,6 +17,7 @@ import {
   createChildList,
 } from '~/lib/db.server'
 import type { School, Base, PackingList } from '~/types/database'
+import type { SchoolBaseRow } from '~/lib/db.server'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Create Packing List - Admin - CPL' }]
@@ -279,7 +280,7 @@ export default function AdminListsNewPage() {
                   disabled={createMode === 'child' && !!parentList?.school_id}
                 >
                   <option value="">No school (general list)</option>
-                  {(schoolsWithBases as (School & { bases: any[] })[]).map((school) => (
+                  {(schoolsWithBases as (School & { bases: SchoolBaseRow[] })[]).map((school) => (
                     <option key={school.id} value={school.id}>
                       {school.name} {school.branch ? `(${school.branch})` : ''}
                     </option>
@@ -295,7 +296,7 @@ export default function AdminListsNewPage() {
                   {schoolBases.length > 0 ? (
                     <>
                       <optgroup label="School Locations">
-                        {schoolBases.map((sb: any) => (
+                        {schoolBases.map((sb: SchoolBaseRow) => (
                           <option key={sb.base_id} value={sb.base_id}>
                             {sb.base_name} {sb.base_state ? `(${sb.base_state})` : ''}
                             {sb.is_primary ? ' - Primary' : ''}
@@ -304,7 +305,7 @@ export default function AdminListsNewPage() {
                       </optgroup>
                       <optgroup label="Other Bases">
                         {(bases as Base[])
-                          .filter((b) => !schoolBases.some((sb: any) => sb.base_id === b.id))
+                          .filter((b) => !schoolBases.some((sb: SchoolBaseRow) => sb.base_id === b.id))
                           .map((base) => (
                             <option key={base.id} value={base.id}>
                               {base.name} {base.state ? `(${base.state})` : ''}

@@ -143,7 +143,7 @@ export default function ListDetailPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-bg-elevated border border-border flex items-center justify-center">
                       {pli.item.image_url ? (
-                        <img src={pli.item.image_url} alt="" className="w-8 h-8 object-contain" />
+                        <img src={pli.item.image_url} alt={pli.item.name} className="w-8 h-8 object-contain" />
                       ) : (
                         <Package size={16} className="text-text-muted" />
                       )}
