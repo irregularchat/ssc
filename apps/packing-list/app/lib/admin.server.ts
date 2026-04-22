@@ -103,7 +103,8 @@ export async function verifyPassword(context: CloudflareContext, password: strin
  * Create a signed auth cookie
  */
 export async function createAuthCookie(context: CloudflareContext): Promise<string> {
-  const secret = context.cloudflare.env.COOKIE_SECRET || context.cloudflare.env.ADMIN_PASSWORD || 'fallback-dev-secret'
+  const secret = context.cloudflare.env.COOKIE_SECRET || context.cloudflare.env.ADMIN_PASSWORD
+  if (!secret) throw new Response('Server misconfiguration: no cookie secret', { status: 500 })
   const payload = JSON.stringify({
     authenticated: true,
     timestamp: Date.now(),
@@ -117,8 +118,8 @@ export async function createAuthCookie(context: CloudflareContext): Promise<stri
 export async function verifyAuthCookie(cookieValue: string | null, context: CloudflareContext): Promise<boolean> {
   if (!cookieValue) return false
 
-  const secret = context.cloudflare.env.COOKIE_SECRET || context.cloudflare.env.ADMIN_PASSWORD || 'fallback-dev-secret'
-
+  const secret = context.cloudflare.env.COOKIE_SECRET || context.cloudflare.env.ADMIN_PASSWORD
+  if (!secret) return false
   try {
     const payload = await verify(cookieValue, secret)
     if (!payload) return false

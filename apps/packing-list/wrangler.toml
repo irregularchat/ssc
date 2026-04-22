@@ -17,10 +17,9 @@ migrations_dir = "db/migrations"
 binding = "UPLOADS"
 bucket_name = "cpl-uploads"
 
-[vars]
-# TODO: Move to wrangler secret — run: wrangler secret put ADMIN_PASSWORD
-# This placeholder is overridden by the secret in production
-ADMIN_PASSWORD = "CHANGE_ME_USE_WRANGLER_SECRET"
+# Secrets (set via wrangler secret put):
+#   ADMIN_PASSWORD — admin login password
+#   COOKIE_SECRET  — HMAC signing key for session cookies
 
 # Custom domain configuration
 [[routes]]

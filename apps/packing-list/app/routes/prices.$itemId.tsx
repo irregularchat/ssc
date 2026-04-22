@@ -21,7 +21,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const priceId = parseInt(formData.get('price_id') as string)
   const voteType = formData.get('vote_type') as 'up' | 'down'
 
-  if (!priceId || !voteType) {
+  if (!priceId || !voteType || (voteType !== 'up' && voteType !== 'down')) {
     return { error: 'Invalid vote' }
   }
 

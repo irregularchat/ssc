@@ -29,7 +29,7 @@ export async function execute(
   db: D1Database,
   sql: string,
   params: unknown[] = []
-): Promise<D1ExecResult> {
+): Promise<D1Response> {
   return db.prepare(sql).bind(...params).run();
 }
 

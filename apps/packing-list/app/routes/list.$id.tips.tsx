@@ -73,7 +73,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   if (intent === 'vote') {
     const tipId = parseInt(formData.get('tip_id') as string)
     const voteType = formData.get('vote_type') as 'up' | 'down'
-    if (!tipId || !voteType) return { error: 'Invalid vote' }
+    if (!tipId || !voteType || (voteType !== 'up' && voteType !== 'down')) return { error: 'Invalid vote' }
     const voterIp = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown'
     await voteOnTip(db, tipId, voteType, voterIp)
     return { success: true }
