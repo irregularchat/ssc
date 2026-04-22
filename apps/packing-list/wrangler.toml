@@ -1,6 +1,26 @@
 name = "community-packing-list"
-compatibility_date = "2025-10-03"
-pages_build_output_dir = "dist"
+main = "./workers/app.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
-[env.production]
-vars = { ENVIRONMENT = "production" }
+[assets]
+directory = "./build/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cpl-db"
+database_id = "c34a7307-0899-4875-bbc8-1548b5ff6175"
+migrations_dir = "db/migrations"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "cpl-uploads"
+
+[vars]
+ADMIN_PASSWORD = "cpl-admin-2026"
+
+# Custom domain configuration
+[[routes]]
+pattern = "packinglist.soldiersupportcenter.com/*"
+zone_name = "soldiersupportcenter.com"

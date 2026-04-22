@@ -1,0 +1,46 @@
+import { type RouteConfig, index, route, prefix } from '@react-router/dev/routes'
+
+export default [
+  index('routes/_index.tsx'),
+  route('list/create', 'routes/list.create.tsx'),
+  route('list/upload', 'routes/list.upload.tsx'),
+  route('list/:id', 'routes/list.$id.tsx'),
+  route('list/:id/add-item', 'routes/list.$id.add-item.tsx'),
+  route('list/:id/edit', 'routes/list.$id.edit.tsx'),
+  route('list/:id/shop', 'routes/list.$id.shop.tsx'),
+  route('list/:id/tips', 'routes/list.$id.tips.tsx'),
+  route('prices/:itemId', 'routes/prices.$itemId.tsx'),
+  route('prices/:itemId/add', 'routes/prices.$itemId.add.tsx'),
+  route('stores', 'routes/stores.tsx'),
+  route('schools', 'routes/schools.tsx'),
+
+  // Admin routes
+  route('admin/login', 'routes/admin.login.tsx'),
+  route('admin/logout', 'routes/admin.logout.tsx'),
+  ...prefix('admin', [
+    route('', 'routes/admin.tsx', [
+      index('routes/admin._index.tsx'),
+      route('stores', 'routes/admin.stores._index.tsx'),
+      route('stores/new', 'routes/admin.stores.new.tsx'),
+      route('stores/merge', 'routes/admin.stores.merge.tsx'),
+      route('stores/:id', 'routes/admin.stores.$id.tsx'),
+      route('items', 'routes/admin.items._index.tsx'),
+      route('items/new', 'routes/admin.items.new.tsx'),
+      route('items/merge', 'routes/admin.items.merge.tsx'),
+      route('items/:id', 'routes/admin.items.$id.tsx'),
+      route('bases', 'routes/admin.bases._index.tsx'),
+      route('bases/new', 'routes/admin.bases.new.tsx'),
+      route('bases/:id', 'routes/admin.bases.$id.tsx'),
+      route('schools', 'routes/admin.schools._index.tsx'),
+      route('schools/new', 'routes/admin.schools.new.tsx'),
+      route('schools/:id', 'routes/admin.schools.$id.tsx'),
+      route('lists', 'routes/admin.lists._index.tsx'),
+      route('lists/new', 'routes/admin.lists.new.tsx'),
+      route('lists/:id', 'routes/admin.lists.$id.tsx'),
+      route('prices', 'routes/admin.prices._index.tsx'),
+      route('prices/:id', 'routes/admin.prices.$id.tsx'),
+      route('tips', 'routes/admin.tips._index.tsx'),
+      route('import-export', 'routes/admin.import-export.tsx'),
+    ]),
+  ]),
+] satisfies RouteConfig
