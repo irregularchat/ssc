@@ -27,7 +27,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     throw new Response('Item not found', { status: 404 })
   }
 
-  const stores = await getStores(db)
+  const stores = await getStores(db, { all: true })
 
   return { item, stores }
 }

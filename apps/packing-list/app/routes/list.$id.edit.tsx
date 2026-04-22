@@ -18,7 +18,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   }
 
   const [schools, bases] = await Promise.all([
-    getSchools(db),
+    getSchools(db, { all: true }),
     getBases(db),
   ])
 

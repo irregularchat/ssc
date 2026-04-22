@@ -28,7 +28,7 @@ import type { Item, Store as StoreType } from '~/types/database'
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDB(context as Parameters<typeof getDB>[0])
 
-  const [items, stores] = await Promise.all([getItems(db), getStores(db)])
+  const [items, stores] = await Promise.all([getItems(db, { all: true }), getStores(db, { all: true })])
 
   // Get prices with item and store info
   const prices = await db

@@ -79,9 +79,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const [list, schools, bases, items] = await Promise.all([
     getPackingListWithItems(db, id),
-    getSchools(db),
+    getSchools(db, { all: true }),
     getBases(db),
-    getItems(db),
+    getItems(db, { all: true }),
   ])
 
   if (!list) {

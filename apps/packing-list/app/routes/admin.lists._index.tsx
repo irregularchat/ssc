@@ -77,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Fetch data in parallel
   const [listsData, schools, bases, listTypes] = await Promise.all([
     getPackingListsWithFilters(db, filters),
-    getSchools(db),
+    getSchools(db, { all: true }),
     getBases(db),
     getDistinctListTypes(db),
   ])

@@ -13,7 +13,7 @@ import type { School, Base } from '~/types/database'
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDB(context as Parameters<typeof getDB>[0])
   const [schools, bases] = await Promise.all([
-    getSchools(db),
+    getSchools(db, { all: true }),
     getBases(db),
   ])
   return { schools, bases }
