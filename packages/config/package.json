@@ -1,0 +1,11 @@
+{
+  "name": "@ssc/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tsconfig.base": "./tsconfig.base.json",
+    "./tsconfig.react": "./tsconfig.react.json",
+    "./tsconfig.worker": "./tsconfig.worker.json",
+    "./eslint": "./eslint.config.js"
+  }
+}
