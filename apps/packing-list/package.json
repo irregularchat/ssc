@@ -12,6 +12,7 @@
     "db:seed": "wrangler d1 execute cpl-db --remote --file=./db/seed.sql"
   },
   "dependencies": {
+    "@ssc/ui": "workspace:*",
     "@react-router/cloudflare": "^7.1.0",
     "clsx": "^2.1.1",
     "isbot": "^5.1.0",
@@ -31,6 +32,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
-    "wrangler": "^4.63.0"
+    "wrangler": "^4.63.0",
+    "@ssc/config": "workspace:*"
   }
 }
