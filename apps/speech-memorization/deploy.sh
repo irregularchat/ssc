@@ -8,6 +8,7 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
+export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-04eac09ae835290383903273f68c79b0}"
 
 DRY_RUN=false
 for arg in "$@"; do

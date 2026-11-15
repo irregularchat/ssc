@@ -10,6 +10,7 @@ NC='\033[0m'
 # Ensure we're in the milnav app directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
+export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-04eac09ae835290383903273f68c79b0}"
 
 DEPLOY_API=false
 DEPLOY_WEB=false
